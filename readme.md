@@ -12,10 +12,15 @@ Clone the repository
 git clone https://github.com/lewinkoon/hemoflow
 ```
 
-Create a virtual environment inside the directory
+Change into the project directory
 
 ```bash
 cd hemoflow
+```
+
+Create a virtual environment inside the directory
+
+```bash
 python -m venv .venv
 ```
 
@@ -30,3 +35,7 @@ Run the script
 ```bash
 python main.py
 ```
+
+# License
+
+This project is licensed under the **MIT License**. See `license.txt` file for details.
