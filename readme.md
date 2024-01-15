@@ -1,4 +1,4 @@
-# Paraflow
+# 🩸Paraflow
 
 > This script aims to visualize velocity image series from a phase contrast mri study as a three-dimensional vector field.
 
@@ -45,17 +45,21 @@ files
 ├───AP
 │   ├───IM1.DCM
 │   ├───IM2.DCM
-│   └───....DCM
+│   ├───...
+│   └───IMX.DCM
 ├───FH
 │   ├───IM1.DCM
 │   ├───IM2.DCM
-│   └───....DCM
+│   ├───...
+│   └───IMX.DCM
 ├───M
 │   ├───IM1.DCM
 │   ├───IM2.DCM
-│   └───....DCM
+│   ├───...
+│   └───IMX.DCM
 └───RL
     ├───IM1.DCM
     ├───IM2.DCM
-    └───....DCM
+    ├───...
+    └───IMX.DCM
 ```
