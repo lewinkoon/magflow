@@ -36,7 +36,7 @@ def main():
     #  fill the dictionary with data
     data = {"FH": [], "RL": [], "AP": []}
     for key in data:
-        folder = f"files/3D/{key}"
+        folder = f"files/{key}"
         files = os.listdir(folder)
         series = [
             parse_dicom(file, folder)
