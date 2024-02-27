@@ -1,5 +1,4 @@
 # import the required libraries
-import matplotlib.pyplot as plt
 import numpy as np
 import os
 from pydicom import dcmread
@@ -33,7 +32,7 @@ def get_velocities(data, time):
 
 
 def main():
-    #  fill the dictionary with data
+    # fill the dictionary with data
     data = {"FH": [], "RL": [], "AP": []}
     for key in data:
         folder = f"files/{key}"
