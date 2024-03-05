@@ -1,4 +1,5 @@
 .venv/
 docs/book
 files/
+output.csv
 __pycache__/
