@@ -17,6 +17,7 @@ def parse_dicom(file):
             tags["loc"] = ds[0x0020, 0x1041].value  # get slice location
             tags["time"] = ds[0x0018, 0x1060].value
             tags["spacing"] = ds[0x0028, 0x0030].value
+            tags["height"] = ds[0x0018, 0x0088].value
             # tags["img"] = ds.pixel_array
             tags["val"] = apply_modality_lut(
                 ds.pixel_array, ds
@@ -39,6 +40,7 @@ def write_csv(data, time):
     # get pixel spacing
     spcx = data[0]["spacing"][0]
     spcy = data[0]["spacing"][1]
+    spcz = data[0]["height"]
 
     # filter images by axis and time
     fh = [img["val"] for img in data if img["axis"] == "FH" and img["time"] == time]
@@ -54,7 +56,7 @@ def write_csv(data, time):
             row = {}
             row["x"] = np.unravel_index(index, (128, 128))[0] * spcx
             row["y"] = np.unravel_index(index, (128, 128))[1] * spcy
-            row["z"] = z
+            row["z"] = z * spcz
             row["t"] = time
             row["vx"] = pxlx
             row["vy"] = pxly
