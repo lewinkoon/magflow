@@ -1,4 +1,5 @@
 import csv
+from itertools import groupby
 import numpy as np
 import os
 from pydicom import dcmread
@@ -15,6 +16,7 @@ def parse_dicom(file):
             tags["num"] = ds[0x0020, 0x0013].value  # get instance number
             tags["loc"] = ds[0x0020, 0x1041].value  # get slice location
             tags["time"] = ds[0x0018, 0x1060].value
+            tags["spacing"] = ds[0x0028, 0x0030].value
             # tags["img"] = ds.pixel_array
             tags["val"] = apply_modality_lut(
                 ds.pixel_array, ds
@@ -30,16 +32,18 @@ def read_files(folder):
             file_path = os.path.join(folder_path, file)
             if parse_dicom(file_path) is not None:
                 data.append(parse_dicom(file_path))
-
-    res = sorted(data, key=lambda x: x["loc"])
-    return res
+    return data
 
 
-def tabulate(data):
+def write_csv(data, time):
+    # get pixel spacing
+    spcx = data[0]["spacing"][0]
+    spcy = data[0]["spacing"][1]
+
     # filter images by axis and time
-    fh = [img["val"] for img in data if img["axis"] == "FH" and img["time"] == 0]
-    rl = [img["val"] for img in data if img["axis"] == "RL" and img["time"] == 0]
-    ap = [img["val"] for img in data if img["axis"] == "AP" and img["time"] == 0]
+    fh = [img["val"] for img in data if img["axis"] == "FH" and img["time"] == time]
+    rl = [img["val"] for img in data if img["axis"] == "RL" and img["time"] == time]
+    ap = [img["val"] for img in data if img["axis"] == "AP" and img["time"] == time]
 
     # convert data into tabular data
     res = []
@@ -48,25 +52,26 @@ def tabulate(data):
             zip(imgy.flatten(), imgx.flatten(), imgz.flatten())
         ):
             row = {}
-            row["x"] = np.unravel_index(index, (128, 128))[0]
-            row["y"] = np.unravel_index(index, (128, 128))[1]
+            row["x"] = np.unravel_index(index, (128, 128))[0] * spcx
+            row["y"] = np.unravel_index(index, (128, 128))[1] * spcy
             row["z"] = z
+            row["t"] = time
             row["vx"] = pxlx
             row["vy"] = pxly
             row["vz"] = pxlz
             res.append(row)
 
-    return res
+    # create folder if not already created
+    if not os.path.exists("output"):
+        os.makedirs("output")
 
-
-def write_csv(data, path):
     # export data as csv
-    fields = data[0].keys()
-    path = "output.csv"
+    fields = res[0].keys()
+    path = f"output/data.csv.{time}"
     with open(path, mode="w", newline="") as file:
         writer = csv.DictWriter(file, fieldnames=fields)
         writer.writeheader()
-        for row in data:
+        for row in res:
             writer.writerow(row)
 
 
