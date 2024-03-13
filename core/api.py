@@ -49,7 +49,7 @@ def write_csv(data, time):
 
     # convert data into tabular data
     res = []
-    for z, (imgx, imgy, imgz) in enumerate(zip(rl, fh, ap)):
+    for z, (imgx, imgy, imgz) in enumerate(zip(ap, fh, rl)):
         for index, (pxlx, pxly, pxlz) in enumerate(
             zip(imgx[::-1].flatten(), imgy[::-1].flatten(), imgz[::-1].flatten())
         ):
