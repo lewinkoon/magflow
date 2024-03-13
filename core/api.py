@@ -49,13 +49,13 @@ def write_csv(data, time):
 
     # convert data into tabular data
     res = []
-    for z, (imgy, imgx, imgz) in enumerate(zip(fh, rl, ap)):
+    for z, (imgx, imgy, imgz) in enumerate(zip(rl, fh, ap)):
         for index, (pxlx, pxly, pxlz) in enumerate(
-            zip(imgy.flatten(), imgx.flatten(), imgz.flatten())
+            zip(imgx[::-1].flatten(), imgy[::-1].flatten(), imgz[::-1].flatten())
         ):
             row = {}
-            row["x"] = np.unravel_index(index, (128, 128))[0] * spcx
-            row["y"] = np.unravel_index(index, (128, 128))[1] * spcy
+            row["x"] = np.unravel_index(index, (128, 128))[1] * spcx
+            row["y"] = np.unravel_index(index, (128, 128))[0] * spcy
             row["z"] = z * spcz
             row["t"] = time
             row["vx"] = pxlx
