@@ -38,9 +38,9 @@ def write_csv(fh, rl, ap, mk, spcx, spcy, spcz, time):
     # convert data into tabular data
     res = []
     for z, (imgx, imgy, imgz, imgm) in enumerate(zip(ap, fh, rl, mk)):
-        imgx[imgm] = 0
-        imgy[imgm] = 0
-        imgz[imgm] = 0
+        imgx[imgm == 0] = 0
+        imgy[imgm == 0] = 0
+        imgz[imgm == 0] = 0
         for index, (pxlx, pxly, pxlz) in enumerate(
             zip(imgx[::-1].flatten(), imgy[::-1].flatten(), imgz[::-1].flatten())
         ):
