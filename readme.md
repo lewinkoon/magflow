@@ -37,11 +37,57 @@ Install the required dependencies from the `requirements.txt` file.
 python -m pip install -r requirements.txt
 ```
 
-Run the script
+Create the required file directories
+
+```bash
+mkdir -p files/{MK,FH,AP,RL}
+```
+The four directories correspond with the following image series:
+
+- **MK** - Segmentation images to applu volume masking.
+- **FH** - Feet to head flow images.
+- **AP** - Anterior to posterior flow images.
+- **RL** - Right to left flow images.
+
+Copy your `dicom` image series to `files/` directory.
+
+```
+files/
+├───MK
+│   ├───IM1.DCM
+│   ├───IM2.DCM
+│   ├───...
+│   └───IMX.DCM
+├───FH
+│   ├───IM1.DCM
+│   ├───IM2.DCM
+│   ├───...
+│   └───IMX.DCM
+├───AP
+│   ├───IM1.DCM
+│   ├───IM2.DCM
+│   ├───...
+│   └───IMX.DCM
+└───RL
+    ├───IM1.DCM
+    ├───IM2.DCM
+    ├───...
+    └───IMX.DCM
+```
+
+Finally, run the script
 
 ```bash
 python main.py
 ```
+
+Data files in `.csv` format will be created for each timestep in `output/` folder. The example table below illustrates how data should look like. Velocities are supposed to be in cm/s.
+
+| x   | y   | z   | vx    | vy    | vz    |
+| --- | --- | --- | ----- | ----- | ----- |
+| 0   | 0   | 0   | 26.54 | -1.54 | 62.14 |
+| ... | ... | ... | ...   | ...   | ...   |
+
 
 # License
 
