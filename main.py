@@ -12,7 +12,7 @@ def export():
     fh = parse_dicom("FH")
     rl = parse_dicom("RL")
     ap = parse_dicom("AP")
-    mk = parse_dicom("SG")
+    mk = parse_dicom("MK")
 
     # get pixel spacing
     timeframes = sorted(set(item["time"] for item in fh))
