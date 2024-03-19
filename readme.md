@@ -81,7 +81,17 @@ Finally, run the script
 python main.py
 ```
 
-Data files in `.csv` format will be created for each timestep in `output/` folder. The example table below illustrates how data should look like. Velocities are supposed to be in cm/s.
+Data files in `.csv` format will be created for each timestep in `output/` folder.
+
+```
+output/
+├───data.csv.0
+├───data.csv.26
+├───...
+└───data.csv.603
+```
+
+The example table below illustrates how data should look like. Velocities are supposed to be in cm/s.
 
 | x   | y   | z   | vx    | vy    | vz    |
 | --- | --- | --- | ----- | ----- | ----- |
