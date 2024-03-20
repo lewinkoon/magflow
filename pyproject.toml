@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "hemoflow"
+version = "0.1.0"
+description = "This script aims to visualize velocity image series from a phase contrast mri study as a three-dimensional vector field."
+authors = ["Lewin <57636993+lewinkoon@users.noreply.github.com>"]
+readme = "readme.md"
+package-mode = false
+
+[tool.poetry.dependencies]
+python = "^3.11"
+numpy = "^1.26.4"
+tqdm = "^4.66.2"
+pydicom = "^2.4.4"
+click = "^8.1.7"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
