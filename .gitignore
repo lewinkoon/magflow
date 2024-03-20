@@ -1,4 +1,5 @@
 .venv/
+dist/
 docs/book
 files/
 output/
