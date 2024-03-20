@@ -5,7 +5,7 @@ from pydicom import dcmread
 from pydicom.pixel_data_handlers.util import apply_modality_lut
 
 
-def parse_dicom(axis):
+def parse(axis):
     res = []
     folder_path = f"files/{axis}"
     for file in os.listdir(folder_path):
@@ -28,7 +28,7 @@ def parse_dicom(axis):
     return res
 
 
-def write_csv(fh, rl, ap, mk, spcx, spcy, spcz, time):
+def export(fh, rl, ap, mk, spcx, spcy, spcz, time):
     # filter images by axis and time
     fh = [slice["val"] for slice in fh if slice["time"] == time]
     rl = [slice["val"] for slice in rl if slice["time"] == time]
