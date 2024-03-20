@@ -2,9 +2,9 @@
 
 ![GitHub repo size](https://img.shields.io/github/repo-size/lewinkoon/hemoflow)
 
-> This script aims to visualize velocity image series from a phase contrast mri study as a three-dimensional vector field.
+> Visualize velocity image series from a phase contrast mri study as a three-dimensional vector field.
 
-## Quickstart
+## Setup
 
 Clone the repository
 
@@ -31,11 +31,19 @@ Activate the previously created virtual environment
 source .venv/bin/activate # on Unix or MacOS
 ```
 
-Install the required dependencies from the `requirements.txt` file.
+Install `poetry` dependency manager
 
 ```bash
-python -m pip install -r requirements.txt
+python -m pip install poetry
 ```
+
+Install the required dependencies for the project
+
+```bash
+poetry install
+```
+
+## Import the required dicom files
 
 Create the required file directories
 
@@ -75,10 +83,12 @@ files/
     └───IMX.DCM
 ```
 
+## Run the package
+
 Finally, run the script
 
 ```bash
-python main.py
+poetry run hemoflow
 ```
 
 Data files in `.csv` format will be created for each timestep in `output/` folder.
