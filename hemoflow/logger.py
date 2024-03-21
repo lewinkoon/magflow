@@ -1,13 +1,14 @@
 import logging
+from rich.logging import RichHandler
 
 logger = logging.getLogger(__name__)
 
-handler = logging.StreamHandler()
+# handler = logging.StreamHandler()
+handler = RichHandler()
 
 logger.setLevel(logging.DEBUG)
 
-
-fmt = "%(asctime)s - %(message)s"
+fmt = "%(message)s"
 formatter = logging.Formatter(fmt, datefmt="%H:%M:%S")
 handler.setFormatter(formatter)
 

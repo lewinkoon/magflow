@@ -10,6 +10,7 @@ python = "^3.11"
 numpy = "^1.26.4"
 tqdm = "^4.66.2"
 pydicom = "^2.4.4"
+rich = "^13.7.1"
 
 [tool.poetry.scripts]
 hemoflow = 'hemoflow.hemoflow:main'
