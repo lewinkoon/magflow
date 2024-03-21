@@ -1,6 +1,7 @@
 import csv
 import numpy as np
 import os
+from hemoflow.logger import logger
 from pydicom import dcmread
 from pydicom.pixel_data_handlers.util import apply_modality_lut
 
@@ -28,14 +29,14 @@ def parse(axis):
     return res
 
 
-def export(fh, rl, ap, mk, spcx, spcy, spcz, time):
+def tabulate(fh, rl, ap, mk, voxel, time):
     # filter images by axis and time
     fh = [slice["val"] for slice in fh if slice["time"] == time]
     rl = [slice["val"] for slice in rl if slice["time"] == time]
     ap = [slice["val"] for slice in ap if slice["time"] == time]
     mk = [slice["pxl"] for slice in mk]
 
-    # convert data into tabular data
+    # convert data into tabular dictionary
     res = []
     for z, (imgx, imgy, imgz, imgm) in enumerate(zip(ap, fh, rl, mk)):
         imgx[imgm == 0] = 0
@@ -45,27 +46,32 @@ def export(fh, rl, ap, mk, spcx, spcy, spcz, time):
             zip(imgx[::-1].flatten(), imgy[::-1].flatten(), imgz[::-1].flatten())
         ):
             row = {}
-            row["x"] = np.unravel_index(index, (128, 128))[1] * spcx
-            row["y"] = np.unravel_index(index, (128, 128))[0] * spcy
-            row["z"] = z * spcz
+            row["x"] = np.unravel_index(index, (128, 128))[1] * voxel[0]
+            row["y"] = np.unravel_index(index, (128, 128))[0] * voxel[1]
+            row["z"] = z * voxel[2]
             row["t"] = time
             row["vx"] = pxlx
             row["vy"] = pxly
             row["vz"] = pxlz
             res.append(row)
+    return res
 
-    # create folder if not already created
-    if not os.path.exists("output"):
-        os.makedirs("output")
 
+def export(data, time):
     # export data as csv
-    fields = res[0].keys()
+    fields = data[0].keys()
     path = f"output/data.csv.{time}"
     with open(path, mode="w", newline="") as file:
         writer = csv.DictWriter(file, fieldnames=fields)
         writer.writeheader()
-        for row in res:
+        for row in data:
             writer.writerow(row)
+
+
+def check_folder():
+    # create folder if not already created
+    if not os.path.exists("output"):
+        os.makedirs("output")
 
 
 def get_velocities(data, time):
