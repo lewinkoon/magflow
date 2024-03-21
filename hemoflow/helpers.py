@@ -1,7 +1,6 @@
 import csv
 import numpy as np
 import os
-from hemoflow.logger import logger
 from pydicom import dcmread
 from pydicom.pixel_data_handlers.util import apply_modality_lut
 

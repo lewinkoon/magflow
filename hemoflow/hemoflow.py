@@ -1,10 +1,8 @@
+import argparse
 from functools import partial
 import multiprocessing
-from tqdm import tqdm
 import hemoflow.helpers as hf
 from hemoflow.logger import logger
-import argparse
-import pathlib
 
 
 def wrapper(fh, rl, ap, mk, voxel, t):
@@ -19,10 +17,12 @@ def main():
         description="Export mri flow dicom files to velocity field in csv format."
     )
     parser.add_argument(
-        "--path", type=pathlib.Path, help="Location of the input flow image series."
+        "-t",
+        "--time",
+        type=int,
+        help="Select a timeframe",
     )
     args = parser.parse_args()
-    print(args)
     logger.info("Script started successfully")
 
     # create a list of dictionaries with the read data
