@@ -101,7 +101,7 @@ output/
 └───data.csv.603
 ```
 
-The example table below illustrates how data should look like. Velocities are supposed to be in cm/s.
+The example table below illustrates how data should look like. Velocities are supposed to be in *cm/s*.
 
 | x   | y   | z   | vx    | vy    | vz    |
 | --- | --- | --- | ----- | ----- | ----- |

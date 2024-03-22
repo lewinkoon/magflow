@@ -28,7 +28,7 @@ def parse(axis):
     return res
 
 
-def tabulate(fh, rl, ap, mk, voxel, time):
+def tabulate(fh, rl, ap, mk, voxel, volume, time):
     # filter images by axis and time
     fh = [slice["val"] for slice in fh if slice["time"] == time]
     rl = [slice["val"] for slice in rl if slice["time"] == time]
@@ -36,6 +36,7 @@ def tabulate(fh, rl, ap, mk, voxel, time):
     mk = [slice["pxl"] for slice in mk]
 
     # convert data into tabular dictionary
+    dimensions = fh[0].shape
     res = []
     for z, (imgx, imgy, imgz, imgm) in enumerate(zip(ap, fh, rl, mk)):
         imgx[imgm == 0] = 0
@@ -45,8 +46,8 @@ def tabulate(fh, rl, ap, mk, voxel, time):
             zip(imgx[::-1].flatten(), imgy[::-1].flatten(), imgz[::-1].flatten())
         ):
             row = {}
-            row["x"] = np.unravel_index(index, (128, 128))[1] * voxel[0]
-            row["y"] = np.unravel_index(index, (128, 128))[0] * voxel[1]
+            row["x"] = np.unravel_index(index, dimensions)[1] * voxel[0]
+            row["y"] = np.unravel_index(index, dimensions)[0] * voxel[1]
             row["z"] = z * voxel[2]
             row["t"] = time
             row["vx"] = pxlx
@@ -58,6 +59,8 @@ def tabulate(fh, rl, ap, mk, voxel, time):
 
 def export(data, time):
     # export data as csv
+    if not os.path.exists("output"):
+        os.makedirs("output")
     fields = data[0].keys()
     path = f"output/data.csv.{time}"
     with open(path, mode="w", newline="") as file:
@@ -65,12 +68,6 @@ def export(data, time):
         writer.writeheader()
         for row in data:
             writer.writerow(row)
-
-
-def check_folder():
-    # create folder if not already created
-    if not os.path.exists("output"):
-        os.makedirs("output")
 
 
 def get_velocities(data, time):

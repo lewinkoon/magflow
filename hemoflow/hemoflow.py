@@ -5,10 +5,10 @@ import hemoflow.helpers as hf
 from hemoflow.logger import logger
 
 
-def wrapper(fh, rl, ap, mk, voxel, t):
-    data = hf.tabulate(fh, rl, ap, mk, voxel, t)
-    hf.export(data, t)
-    logger.info(f"Trigger time {t} exported")
+def wrapper(fh, rl, ap, mk, voxel, volume, time):
+    data = hf.tabulate(fh, rl, ap, mk, voxel, volume, time)
+    hf.export(data, time)
+    logger.info(f"Trigger time {time} exported")
 
 
 def main():
@@ -23,21 +23,29 @@ def main():
         help="Select a timeframe",
     )
     args = parser.parse_args()
-    logger.info("Script started successfully")
+    logger.info("Script started successfully.")
 
     # create a list of dictionaries with the read data
     fh = hf.parse("FH")
-    logger.info(f"FH: {len(fh)} images.")
+    logger.info(f"FH series: {len(fh)} images.")
     rl = hf.parse("RL")
-    logger.info(f"RL: {len(rl)} images.")
+    logger.info(f"RL series: {len(rl)} images.")
     ap = hf.parse("AP")
-    logger.info(f"AP: {len(ap)} images.")
+    logger.info(f"AP series: {len(ap)} images.")
     mk = hf.parse("MK")
-    logger.info(f"MK: {len(mk)} images.")
+    logger.info(f"MK series: {len(mk)} images.")
 
     # list unique trigger times
     timeframes = sorted(set(item["time"] for item in fh))
-    logger.info(f"Detected {len(timeframes)} timeframes")
+    logger.info(f"Timeframes: {len(timeframes)}")
+
+    # get volume dimensions
+    volume = (
+        fh[0]["val"].shape[0],
+        fh[0]["val"].shape[1],
+        len(set(item["loc"] for item in fh)),
+    )
+    logger.info(f"Volume dimensions: ({volume[0]} px, {volume[1]} px, {volume[2]} px)")
 
     # get voxel spacing
     voxel = (fh[0]["spacing"][0], fh[0]["spacing"][1], fh[0]["height"])
@@ -54,7 +62,7 @@ def main():
     # logger.info("Script finished successfully.")
 
     # export csv files with multiprocessing
-    worker = partial(wrapper, fh, rl, ap, mk, voxel)
+    worker = partial(wrapper, fh, rl, ap, mk, voxel, volume)
     with multiprocessing.Pool() as pool:
         pool.map(worker, timeframes)
     logger.info("Script finished successfully.")
