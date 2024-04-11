@@ -28,20 +28,17 @@ def parse(axis):
     return res
 
 
-def tabulate(fh, rl, ap, mk, voxel, volume, time):
+def filter(series, time):
     # filter images by axis and time
-    fh = [slice["val"] for slice in fh if slice["time"] == time]
-    rl = [slice["val"] for slice in rl if slice["time"] == time]
-    ap = [slice["val"] for slice in ap if slice["time"] == time]
-    mk = [slice["pxl"] for slice in mk]
+    res = [slice["val"] for slice in series if slice["time"] == time]
+    return res
 
+
+def tabulate(fh, rl, ap, voxel, time):
     # convert data into tabular dictionary
     dimensions = fh[0].shape
     res = []
-    for z, (imgx, imgy, imgz, imgm) in enumerate(zip(ap, fh, rl, mk)):
-        imgx[imgm == 0] = 0
-        imgy[imgm == 0] = 0
-        imgz[imgm == 0] = 0
+    for z, (imgx, imgy, imgz) in enumerate(zip(ap, fh, rl)):
         for index, (pxlx, pxly, pxlz) in enumerate(
             zip(imgx[::-1].flatten(), imgy[::-1].flatten(), imgz[::-1].flatten())
         ):
@@ -57,6 +54,20 @@ def tabulate(fh, rl, ap, mk, voxel, volume, time):
     return res
 
 
+def mask(fh, rl, ap, m):
+    fh, rl, ap = [], [], []
+    for imgx, imgy, imgz, imgm in zip(ap, fh, rl, m):
+        imgx[imgm == 0] = 0
+        imgy[imgm == 0] = 0
+        imgz[imgm == 0] = 0
+
+        fh.append(imgy)
+        rl.append(imgz)
+        ap.append(imgx)
+
+    return fh, rl, ap
+
+
 def export(data, time):
     # export data as csv
     if not os.path.exists("output"):
@@ -68,12 +79,3 @@ def export(data, time):
         writer.writeheader()
         for row in data:
             writer.writerow(row)
-
-
-def get_velocities(data, time):
-    # format the velocity field as an array for a given timestep
-    fh = np.array([img["val"] for img in data["FH"][:, time]])
-    rl = np.array([img["val"] for img in data["RL"][:, time]])
-    ap = np.array([img["val"] for img in data["AP"][:, time]])
-
-    return np.stack((fh, rl, ap), axis=-1)

@@ -5,8 +5,15 @@ import hemoflow.helpers as hf
 from hemoflow.logger import logger
 
 
-def wrapper(fh, rl, ap, mk, voxel, volume, time):
-    data = hf.tabulate(fh, rl, ap, mk, voxel, volume, time)
+def wrapper(fh, rl, ap, m, voxel, time):
+    fh = hf.filter(fh, time)
+    rl = hf.filter(rl, time)
+    ap = hf.filter(ap, time)
+
+    if m is not None:
+        fh, rl, ap = hf.mask(fh, rl, ap, m)
+
+    data = hf.tabulate(fh, rl, ap, voxel, time)
     hf.export(data, time)
     logger.info(f"Trigger time {time} exported")
 
@@ -17,8 +24,8 @@ def main():
         description="Export mri flow dicom files to velocity field in csv format."
     )
     parser.add_argument(
-        "-t",
-        "--time",
+        "-m",
+        "--mask",
         type=int,
         help="Select a timeframe",
     )
@@ -32,8 +39,13 @@ def main():
     logger.info(f"RL series: {len(rl)} images.")
     ap = hf.parse("AP")
     logger.info(f"AP series: {len(ap)} images.")
-    mk = hf.parse("MK")
-    logger.info(f"MK series: {len(mk)} images.")
+
+    # create m series list if required
+    if args.mask:
+        m = hf.parse("M")
+        logger.info(f"M series: {len(m)} images.")
+    else:
+        m = None
 
     # list unique trigger times
     timeframes = sorted(set(item["time"] for item in fh))
@@ -56,13 +68,13 @@ def main():
     # # export csv files
     # hf.check_folder()
     # for t in timeframes:
-    #     data = hf.tabulate(fh, rl, ap, mk, voxel, t)
+    #     data = hf.tabulate(fh, rl, ap, m, voxel, t)
     #     hf.export(data, t)
     #     logger.info(f"Trigger time {t} exported")
     # logger.info("Script finished successfully.")
 
     # export csv files with multiprocessing
-    worker = partial(wrapper, fh, rl, ap, mk, voxel, volume)
+    worker = partial(wrapper, fh, rl, ap, m, voxel)
     with multiprocessing.Pool() as pool:
         pool.map(worker, timeframes)
     logger.info("Script finished successfully.")
