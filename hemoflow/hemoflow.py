@@ -26,8 +26,8 @@ def main():
     parser.add_argument(
         "-m",
         "--mask",
-        type=int,
-        help="Select a timeframe",
+        action="store_true",
+        help="Mask velocity field with segmentation.",
     )
     args = parser.parse_args()
     logger.info("Script started successfully.")
