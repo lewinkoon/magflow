@@ -54,9 +54,9 @@ def tabulate(fh, rl, ap, voxel, time):
     return res
 
 
-def mask(fh, rl, ap, m):
+def mask(fh, rl, ap, mk):
     fh, rl, ap = [], [], []
-    for imgx, imgy, imgz, imgm in zip(ap, fh, rl, m):
+    for imgx, imgy, imgz, imgm in zip(ap, fh, rl, mk):
         imgx[imgm == 0] = 0
         imgy[imgm == 0] = 0
         imgz[imgm == 0] = 0

@@ -5,13 +5,13 @@ import hemoflow.helpers as hf
 from hemoflow.logger import logger
 
 
-def wrapper(fh, rl, ap, m, voxel, time):
+def wrapper(fh, rl, ap, mk, voxel, time):
     fh = hf.filter(fh, time)
     rl = hf.filter(rl, time)
     ap = hf.filter(ap, time)
 
-    if m is not None:
-        fh, rl, ap = hf.mask(fh, rl, ap, m)
+    if mk is not None:
+        fh, rl, ap = hf.mask(fh, rl, ap, mk)
 
     data = hf.tabulate(fh, rl, ap, voxel, time)
     hf.export(data, time)
@@ -42,10 +42,10 @@ def main():
 
     # create m series list if required
     if args.mask:
-        m = hf.parse("M")
-        logger.info(f"M series: {len(m)} images.")
+        mk = hf.parse("M")
+        logger.info(f"M series: {len(mk)} images.")
     else:
-        m = None
+        mk = None
 
     # list unique trigger times
     timeframes = sorted(set(item["time"] for item in fh))
@@ -65,16 +65,8 @@ def main():
         f"Voxel dimensions: ({voxel[0]:.2f} mm, {voxel[1]:.2f} mm, {voxel[2]:.2f} mm)"
     )
 
-    # # export csv files
-    # hf.check_folder()
-    # for t in timeframes:
-    #     data = hf.tabulate(fh, rl, ap, m, voxel, t)
-    #     hf.export(data, t)
-    #     logger.info(f"Trigger time {t} exported")
-    # logger.info("Script finished successfully.")
-
     # export csv files with multiprocessing
-    worker = partial(wrapper, fh, rl, ap, m, voxel)
+    worker = partial(wrapper, fh, rl, ap, mk, voxel)
     with multiprocessing.Pool() as pool:
         pool.map(worker, timeframes)
     logger.info("Script finished successfully.")
