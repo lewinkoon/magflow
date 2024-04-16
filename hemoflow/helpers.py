@@ -1,29 +1,53 @@
 import csv
+from itertools import count
 import numpy as np
 import os
 from pydicom import dcmread
 from pydicom.pixel_data_handlers.util import apply_modality_lut
 
 
-def parse(axis):
+def parse(axis, frames=None):
     res = []
     folder_path = f"files/{axis}"
-    for file in os.listdir(folder_path):
+    for idx, file in enumerate(os.listdir(folder_path)):
         file_path = os.path.join(folder_path, file)
         slice = {}
         with open(file_path, "rb") as file:
             ds = dcmread(file)
+
+            # series description
             slice["axis"] = ds[0x0008, 0x103E].value
-            slice["num"] = ds[0x0020, 0x0013].value  # get instance number
+
+            # instance number
+            if frames is not None:
+                slice["num"] = idx
+            else:
+                slice["num"] = ds[0x0020, 0x0013].value
+
+            # pixel size
             slice["spacing"] = ds[0x0028, 0x0030].value
+
+            # raw image
             slice["pxl"] = ds.pixel_array
-            if ds[0x0008, 0x0008].value[2] == "PHASE CONTRAST M":
-                slice["height"] = ds[0x0018, 0x0088].value
-                slice["loc"] = ds[0x0020, 0x1041].value  # get slice location
+
+            # spacing between slices
+            # slice["height"] = ds[0x0018, 0x0088].value
+            slice["height"] = 10
+
+            # trigger time
+            if frames is not None:
+                slice["time"] = idx - (idx // frames) * frames
+            else:
                 slice["time"] = ds[0x0018, 0x1060].value
-                slice["val"] = apply_modality_lut(
-                    ds.pixel_array, ds
-                )  # convert pixel values to velocity values
+
+            # slice location
+            if frames is not None:
+                slice["loc"] = idx // frames
+            else:
+                slice["loc"] = ds[0x0020, 0x1041].value
+
+            # velocity field
+            slice["val"] = apply_modality_lut(ds.pixel_array, ds)
             res.append(slice)
     return res
 

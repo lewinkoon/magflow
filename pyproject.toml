@@ -13,7 +13,7 @@ pydicom = "^2.4.4"
 rich = "^13.7.1"
 
 [tool.poetry.scripts]
-hemoflow = 'hemoflow.hemoflow:main'
+hemoflow = 'hemoflow.cli:cli'
 
 [build-system]
 requires = ["poetry-core"]

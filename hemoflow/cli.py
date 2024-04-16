@@ -1,4 +1,5 @@
 import argparse
+from ast import Pass
 from functools import partial
 import multiprocessing
 import hemoflow.helpers as hf
@@ -18,34 +19,22 @@ def wrapper(fh, rl, ap, mk, voxel, time):
     logger.info(f"Trigger time {time} exported")
 
 
-def main():
-    # setup argument parsing
-    parser = argparse.ArgumentParser(
-        description="Export mri flow dicom files to velocity field in csv format."
-    )
-    parser.add_argument(
-        "-m",
-        "--mask",
-        action="store_true",
-        help="Mask velocity field with segmentation.",
-    )
-    args = parser.parse_args()
-    logger.info("Script started successfully.")
-
+def run(args):
     # create a list of dictionaries with the read data
-    fh = hf.parse("FH")
+    fh = hf.parse("FH", args.frames)
     logger.info(f"FH series: {len(fh)} images.")
-    rl = hf.parse("RL")
+    rl = hf.parse("RL", args.frames)
     logger.info(f"RL series: {len(rl)} images.")
-    ap = hf.parse("AP")
+    ap = hf.parse("AP", args.frames)
     logger.info(f"AP series: {len(ap)} images.")
+    mk = None
 
-    # create m series list if required
-    if args.mask:
-        mk = hf.parse("M")
-        logger.info(f"M series: {len(mk)} images.")
-    else:
-        mk = None
+    # # create m series list if required
+    # if args.mask:
+    #     mk = hf.parse("M")
+    #     logger.info(f"M series: {len(mk)} images.")
+    # else:
+    #     mk = None
 
     # list unique trigger times
     timeframes = sorted(set(item["time"] for item in fh))
@@ -72,5 +61,25 @@ def main():
     logger.info("Script finished successfully.")
 
 
-if __name__ == "__main__":
-    main()
+def cli():
+    # setup argument parsing
+    parser = argparse.ArgumentParser(
+        description="Export mri flow dicom files to velocity field in csv format."
+    )
+    parser.add_argument(
+        "-m",
+        "--mask",
+        action="store_true",
+        help="Mask velocity field with segmentation.",
+    )
+    parser.add_argument(
+        "-f",
+        "--frames",
+        action="store",
+        type=int,
+        help="Number of frames in the sequence.",
+    )
+    args = parser.parse_args()
+    logger.info("Script started successfully.")
+
+    run(args)
