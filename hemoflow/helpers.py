@@ -4,6 +4,8 @@ import numpy as np
 import os
 from pydicom import dcmread
 from pydicom.pixel_data_handlers.util import apply_modality_lut
+from hemoflow.logger import logger
+import sys
 
 
 def parse(axis, frames=None):
@@ -22,32 +24,47 @@ def parse(axis, frames=None):
             if frames is not None:
                 slice["num"] = idx
             else:
-                slice["num"] = ds[0x0020, 0x0013].value
+                try:
+                    slice["num"] = ds[0x0020, 0x0013].value
+                except:
+                    logger.error("Instance number tag could not read. Try manual mode.")
+                    sys.exit(1)
 
             # pixel size
             slice["spacing"] = ds[0x0028, 0x0030].value
 
             # raw image
-            slice["pxl"] = ds.pixel_array
+            if ds[0x0028, 0x0004].value == "MONOCHROME2":
+                slice["pxl"] = ds.pixel_array
+                slice["val"] = apply_modality_lut(ds.pixel_array, ds)
+            else:
+                img = np.mean(ds.pixel_array, axis=2)
+                slice["pxl"] = img
+                slice["val"] = apply_modality_lut(img, ds)
 
             # spacing between slices
-            # slice["height"] = ds[0x0018, 0x0088].value
-            slice["height"] = 10
+            slice["height"] = ds[0x0018, 0x0088].value
 
             # trigger time
             if frames is not None:
                 slice["time"] = idx - (idx // frames) * frames
             else:
-                slice["time"] = ds[0x0018, 0x1060].value
+                try:
+                    slice["time"] = ds[0x0018, 0x1060].value
+                except:
+                    logger.error("Trigger time tag could not read. Try manual mode.")
+                    sys.exit(1)
 
             # slice location
             if frames is not None:
                 slice["loc"] = idx // frames
             else:
-                slice["loc"] = ds[0x0020, 0x1041].value
+                try:
+                    slice["loc"] = ds[0x0020, 0x1041].value
+                except:
+                    logger.error("Slice location tag could not read. Try manual mode.")
+                    sys.exit(1)
 
-            # velocity field
-            slice["val"] = apply_modality_lut(ds.pixel_array, ds)
             res.append(slice)
     return res
 

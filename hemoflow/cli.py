@@ -1,5 +1,4 @@
 import argparse
-from ast import Pass
 from functools import partial
 import multiprocessing
 import hemoflow.helpers as hf
@@ -16,7 +15,7 @@ def wrapper(fh, rl, ap, mk, voxel, time):
 
     data = hf.tabulate(fh, rl, ap, voxel, time)
     hf.export(data, time)
-    logger.info(f"Trigger time {time} exported")
+    logger.info(f"Trigger time {time} exported with {len(data)} rows.")
 
 
 def run(args):
@@ -27,14 +26,13 @@ def run(args):
     logger.info(f"RL series: {len(rl)} images.")
     ap = hf.parse("AP", args.frames)
     logger.info(f"AP series: {len(ap)} images.")
-    mk = None
 
-    # # create m series list if required
-    # if args.mask:
-    #     mk = hf.parse("M")
-    #     logger.info(f"M series: {len(mk)} images.")
-    # else:
-    #     mk = None
+    # create m series list if required
+    if args.mask:
+        mk = hf.parse("M")
+        logger.info(f"M series: {len(mk)} images.")
+    else:
+        mk = None
 
     # list unique trigger times
     timeframes = sorted(set(item["time"] for item in fh))
@@ -42,8 +40,8 @@ def run(args):
 
     # get volume dimensions
     volume = (
-        fh[0]["val"].shape[0],
-        fh[0]["val"].shape[1],
+        fh[0]["pxl"].shape[0],
+        fh[0]["pxl"].shape[1],
         len(set(item["loc"] for item in fh)),
     )
     logger.info(f"Volume dimensions: ({volume[0]} px, {volume[1]} px, {volume[2]} px)")
