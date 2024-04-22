@@ -36,9 +36,35 @@ def init(path):
 
 
 @cli.command()
+def clean():
+    path = "output"
+
+    # check first if path exists
+    if not os.path.exists(path):
+        logger.error("Output files not exported yet.")
+    else:
+        try:
+            os.rmdir(path)
+            logger.info(f"Removed {path}")
+        except OSError:
+            for filename in os.listdir(path):
+                file_path = os.path.join(path, filename)
+                try:
+                    if os.path.isfile(file_path):
+                        os.remove(file_path)
+                        logger.info(f"Removed {file_path}")
+                except Exception as e:
+                    logger.error(f"Error while deleting {file_path}: {e}")
+            os.rmdir(path)
+            logger.info(f"Removed {path}")
+        except:
+            logger.error("Output directory cannot be removed.")
+
+
+@cli.command()
 @click.argument("path")
 @click.option("-f", "--frames", type=int, help="Number of frames in the sequence.")
-def run(frames):
+def build(frames):
 
     def wrapper(fh, rl, ap, voxel, time):
         fh = hf.filter(fh, time)
