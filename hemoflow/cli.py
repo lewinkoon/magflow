@@ -6,12 +6,17 @@ from hemoflow.logger import logger
 import os
 
 
-@click.group()
+@click.group(
+    epilog="Check out readme at https://github.com/lewinkoon/hemoflow for more details."
+)
 def cli():
+    """
+    Visualize velocity image series from a phase contrast magnetic resonance imaging study as a three-dimensional vector field.
+    """
     pass
 
 
-@cli.command()
+@cli.command(help="Initialize input directory structure.")
 @click.argument("path", default="files", type=click.Path())
 def init(path):
     # check first if path exists
@@ -35,7 +40,7 @@ def init(path):
         logger.info(f"Created Rl directory in {rl_path}")
 
 
-@cli.command()
+@cli.command(help="Remove exported data.")
 def clean():
     path = "output"
 
@@ -61,9 +66,15 @@ def clean():
             logger.error("Output directory cannot be removed.")
 
 
-@cli.command()
-@click.argument("path")
-@click.option("-f", "--frames", type=int, help="Number of frames in the sequence.")
+@cli.command(help="Convert a dicom sequence to multiple dicoms.")
+@click.argument("path", required=True, type=click.Path())
+def fix(path):
+    logger.info(f"Fixed dicom file from {path}")
+
+
+@cli.command(help="Create volumetric velocity field from dicom files.")
+@click.argument("path", default="files", type=click.Path())
+@click.option("--frames", type=int, help="Number of frames in the sequence.")
 def build(frames):
 
     def wrapper(fh, rl, ap, voxel, time):
