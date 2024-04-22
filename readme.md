@@ -43,19 +43,18 @@ Install the required dependencies for the project
 poetry install
 ```
 
-## Import the required dicom files
+## Import dicom files
 
 Create the required file directories
 
 ```shell
-mkdir -p files/{M,FH,AP,RL}
+hemoflow init
 ```
 The four directories correspond with the following image series:
 
 - **FH** - Feet to head flow images.
 - **AP** - Anterior to posterior flow images.
 - **RL** - Right to left flow images.
-- **M (optional)** - Segmentation images to apply volume masking.
 
 Copy your `dicom` image series to `files/` directory.
 
@@ -71,24 +70,19 @@ files/
 │   ├───IM2.DCM
 │   ├───...
 │   └───IMX.DCM
-├───RL
-│   ├───IM1.DCM
-│   ├───IM2.DCM
-│   ├───...
-│   └───IMX.DCM
-└───M (optional)
+└───RL
     ├───IM1.DCM
     ├───IM2.DCM
     ├───...
     └───IMX.DCM
 ```
 
-## Run the package
+## Run the script
 
-Finally, run the script
+Finally, build volumetric the velocity field from dicom files.
 
 ```shell
-poetry run hemoflow
+hemoflow build
 ```
 
 Data files in `.csv` format will be created for each timestep in `output/` folder.
@@ -101,13 +95,10 @@ output/
 └───data.csv.603
 ```
 
-The example table below illustrates how data should look like. Velocities are supposed to be in *cm/s*.
+Each dataframe will have cordinates and velocity components for each axis.
 
-| x   | y   | z   | vx    | vy    | vz    |
-| --- | --- | --- | ----- | ----- | ----- |
-| 0   | 0   | 0   | 26.54 | -1.54 | 62.14 |
-| ... | ... | ... | ...   | ...   | ...   |
-
+> [!IMPORTANT]
+> Velocity components are meant to be in **cm/s**.
 
 # License
 
