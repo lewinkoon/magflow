@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "hemoflow"
 version = "0.1.0"
-description = "Visualize velocity image series from a phase contrast mri study as a three-dimensional vector field."
+description = "Visualize velocity image series from a phase contrast magnetic resonance imaging study as three-dimensional vector field."
 authors = ["Lewin <57636993+lewinkoon@users.noreply.github.com>"]
 readme = "readme.md"
 
