@@ -1,38 +1,61 @@
-import argparse
+import click
 from functools import partial
 import multiprocessing
 import hemoflow.helpers as hf
 from hemoflow.logger import logger
+import os
 
 
-def wrapper(fh, rl, ap, mk, voxel, time):
-    fh = hf.filter(fh, time)
-    rl = hf.filter(rl, time)
-    ap = hf.filter(ap, time)
-
-    if mk is not None:
-        fh, rl, ap = hf.mask(fh, rl, ap, mk)
-
-    data = hf.tabulate(fh, rl, ap, voxel, time)
-    hf.export(data, time)
-    logger.info(f"Trigger time {time} exported with {len(data)} rows.")
+@click.group()
+def cli():
+    pass
 
 
-def run(args):
-    # create a list of dictionaries with the read data
-    fh = hf.parse("FH", args.frames)
-    logger.info(f"FH series: {len(fh)} images.")
-    rl = hf.parse("RL", args.frames)
-    logger.info(f"RL series: {len(rl)} images.")
-    ap = hf.parse("AP", args.frames)
-    logger.info(f"AP series: {len(ap)} images.")
-
-    # create m series list if required
-    if args.mask:
-        mk = hf.parse("M")
-        logger.info(f"M series: {len(mk)} images.")
+@cli.command()
+@click.argument("path", default="files", type=click.Path())
+def init(path):
+    # check first if path exists
+    if os.path.exists(path):
+        logger.error(f"Directory already exists in {os.path.abspath(path)}")
     else:
-        mk = None
+        os.mkdir(path)
+        # create fh directory
+        fh_path = os.path.join(path, "FH")
+        os.mkdir(fh_path)
+        logger.info(f"Created FH directory in {fh_path}")
+
+        # create ap directory
+        ap_path = os.path.join(path, "AP")
+        os.mkdir(ap_path)
+        logger.info(f"Created AP directory in {ap_path}")
+
+        # create rl directory
+        rl_path = os.path.join(path, "RL")
+        os.mkdir(rl_path)
+        logger.info(f"Created Rl directory in {rl_path}")
+
+
+@cli.command()
+@click.argument("path")
+@click.option("-f", "--frames", type=int, help="Number of frames in the sequence.")
+def run(frames):
+
+    def wrapper(fh, rl, ap, voxel, time):
+        fh = hf.filter(fh, time)
+        rl = hf.filter(rl, time)
+        ap = hf.filter(ap, time)
+
+        data = hf.tabulate(fh, rl, ap, voxel, time)
+        hf.export(data, time)
+        logger.info(f"Trigger time {time} exported with {len(data)} rows.")
+
+    # create a list of dictionaries with the read data
+    fh = hf.parse("FH", frames)
+    logger.info(f"FH series: {len(fh)} images.")
+    rl = hf.parse("RL", frames)
+    logger.info(f"RL series: {len(rl)} images.")
+    ap = hf.parse("AP", frames)
+    logger.info(f"AP series: {len(ap)} images.")
 
     # list unique trigger times
     timeframes = sorted(set(item["time"] for item in fh))
@@ -53,31 +76,11 @@ def run(args):
     )
 
     # export csv files with multiprocessing
-    worker = partial(wrapper, fh, rl, ap, mk, voxel)
+    worker = partial(wrapper, fh, rl, ap, voxel)
     with multiprocessing.Pool() as pool:
         pool.map(worker, timeframes)
     logger.info("Script finished successfully.")
 
 
-def cli():
-    # setup argument parsing
-    parser = argparse.ArgumentParser(
-        description="Export mri flow dicom files to velocity field in csv format."
-    )
-    parser.add_argument(
-        "-m",
-        "--mask",
-        action="store_true",
-        help="Mask velocity field with segmentation.",
-    )
-    parser.add_argument(
-        "-f",
-        "--frames",
-        action="store",
-        type=int,
-        help="Number of frames in the sequence.",
-    )
-    args = parser.parse_args()
-    logger.info("Script started successfully.")
-
-    run(args)
+if __name__ == "__main__":
+    cli()
