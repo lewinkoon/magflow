@@ -6,6 +6,7 @@ from hemoflow.logger import logger
 import os
 import sys
 from pydicom import dcmread
+import numpy as np
 
 
 @click.group(
@@ -113,16 +114,27 @@ def clean():
     is_flag=True,
     help="Fix instance number of each frame.",
 )
-def fix(path, instance):
+@click.option(
+    "--channels",
+    is_flag=True,
+    help="Fix image channels.",
+)
+def fix(path, instance, channels):
     for idx, file in enumerate(os.listdir(path)):
         file_path = os.path.join(path, file)
-        with open(file_path, "rb") as file:
-            ds = dcmread(file)
+        with open(file_path, "rb") as f:
+            ds = dcmread(f)
 
             # fix instance number
             if instance:
-                ds[0x0020, 0x0013].value = idx
-                logger.info(f"Instance number modified.")
+                pre = ds[0x0020, 0x0013].value
+                post = idx
+                ds[0x0020, 0x0013].value = post
+                logger.info(f"{file}: Changed instance number from {pre} to {post}.")
+
+            if channels:
+                ds.pixel_array = np.mean(ds.pixel_array, axis=2)
+                logger.info(f"{file}: Fixed image channels.")
 
             # check output directory
             if not os.path.exists("output"):
