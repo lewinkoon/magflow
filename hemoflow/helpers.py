@@ -4,6 +4,8 @@ import numpy as np
 import os
 from pydicom import dcmread
 from pydicom.pixel_data_handlers.util import apply_modality_lut
+from pydicom.dataset import Dataset, FileMetaDataset
+from pydicom.sequence import Sequence
 from hemoflow.logger import logger
 import sys
 
@@ -17,53 +19,45 @@ def parse(axis, frames=None):
         with open(file_path, "rb") as file:
             ds = dcmread(file)
 
+            # image array
+            if ds[0x0028, 0x0004].value == "MONOCHROME2":
+                img = ds.pixel_array
+            else:
+                img = np.mean(ds.pixel_array, axis=2)
+            slice["pxl"] = img
+            slice["val"] = apply_modality_lut(img, ds)
+
             # series description
             slice["axis"] = ds[0x0008, 0x103E].value
 
             # instance number
-            if frames is not None:
-                slice["num"] = idx
-            else:
-                try:
-                    slice["num"] = ds[0x0020, 0x0013].value
-                except:
-                    logger.error("Instance number tag could not read. Try manual mode.")
-                    sys.exit(1)
+            try:
+                slice["num"] = ds[0x0020, 0x0013].value
+            except:
+                logger.error("Instance number tag could not read. Try fix command.")
+                sys.exit(1)
 
             # pixel size
             slice["spacing"] = ds[0x0028, 0x0030].value
-
-            # raw image
-            if ds[0x0028, 0x0004].value == "MONOCHROME2":
-                slice["pxl"] = ds.pixel_array
-                slice["val"] = apply_modality_lut(ds.pixel_array, ds)
-            else:
-                img = np.mean(ds.pixel_array, axis=2)
-                slice["pxl"] = img
-                slice["val"] = apply_modality_lut(img, ds)
 
             # spacing between slices
             slice["height"] = ds[0x0018, 0x0088].value
 
             # trigger time
-            if frames is not None:
-                slice["time"] = idx - (idx // frames) * frames
-            else:
-                try:
-                    slice["time"] = ds[0x0018, 0x1060].value
-                except:
-                    logger.error("Trigger time tag could not read. Try manual mode.")
-                    sys.exit(1)
+            try:
+                slice["time"] = ds[0x0018, 0x1060].value
+                # slice["time"] = idx - (idx // frames) * frames
+            except:
+                logger.error("Trigger time tag could not read. Try manual mode.")
+                sys.exit(1)
 
             # slice location
-            if frames is not None:
-                slice["loc"] = idx // frames
-            else:
-                try:
-                    slice["loc"] = ds[0x0020, 0x1041].value
-                except:
-                    logger.error("Slice location tag could not read. Try manual mode.")
-                    sys.exit(1)
+            try:
+                slice["loc"] = ds[0x0020, 0x1041].value
+                # slice["loc"] = idx // frames
+            except:
+                logger.error("Slice location tag could not read. Try manual mode.")
+                sys.exit(1)
 
             res.append(slice)
     return res
