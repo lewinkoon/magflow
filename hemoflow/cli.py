@@ -4,8 +4,7 @@ import multiprocessing
 import hemoflow.helpers as hf
 from hemoflow.logger import logger
 import os
-import sys
-from pydicom import dcmread
+import pydicom as pd
 import numpy as np
 
 
@@ -67,10 +66,10 @@ def build(frames):
 
 
 @cli.command(help="Check dicom file metadata.")
-@click.argument("path", required=True, type=click.Path())
+@click.argument("path1", required=True, type=click.Path())
 def check(path):
     with open(path, "rb") as file:
-        ds = dcmread(file)
+        ds = pd.dcmread(file)
         logger.info(f"File: {path}")
         logger.info(f"Axis: {ds[0x0008, 0x103E].value}")
         logger.info(f"Instance number: {ds[0x0020, 0x0013].value}")
@@ -107,23 +106,23 @@ def clean():
             logger.error("Output directory cannot be removed.")
 
 
-@cli.command(help="Fix dicom series metadata.")
+@cli.command(help="Patch dicom series metadata.")
 @click.argument("path", required=True, type=click.Path())
 @click.option(
     "--instance",
     is_flag=True,
-    help="Fix instance number of each frame.",
+    help="Patch instance number of each frame.",
 )
 @click.option(
     "--channels",
     is_flag=True,
-    help="Fix image channels.",
+    help="Patch image channels.",
 )
-def fix(path, instance, channels):
+def patch(path, instance, channels):
     for idx, file in enumerate(os.listdir(path)):
         file_path = os.path.join(path, file)
         with open(file_path, "rb") as f:
-            ds = dcmread(f)
+            ds = pd.dcmread(f)
 
             # fix instance number
             if instance:
@@ -141,6 +140,44 @@ def fix(path, instance, channels):
                 os.makedirs("output")
 
             ds.save_as(f"output/{idx:02d}.dcm")
+
+
+@cli.command(help="Fix multiframe dicom file.")
+@click.argument("file", required=True, type=click.Path())
+def fix(file):
+    with open(file, "rb") as f:
+        ds = pd.dcmread(f)
+        n = int(ds.NumberOfFrames)
+
+        img = ds.pixel_array.squeeze()
+
+        essentials = [0x0020, 0x0028]
+
+        logger.info(n)
+
+        for idx in range(n):
+            target = os.path.join("files/AP", f"img{idx:02d}.dcm")
+
+            file_meta = pd.dataset.FileMetaDataset()
+            file_meta.MediaStorageSOPClassUID = pd.uid.MRImageStorage
+            file_meta.MediaStorageSOPInstanceUID = pd.uid.generate_uid()
+            file_meta.TransferSyntaxUID = pd.uid.ImplicitVRLittleEndian
+
+            tmp_ds = pd.dataset.Dataset()
+            tmp_ds.file_meta = file_meta
+            tmp_ds.is_little_endian = (
+                tmp_ds.file_meta.TransferSyntaxUID.is_little_endian
+            )
+            tmp_ds.is_implicit_VR = tmp_ds.file_meta.TransferSyntaxUID.is_implicit_VR
+
+            for group in essentials:
+                for key, value in ds.group_dataset(group).items():
+                    tmp_ds[key] = value
+
+            del tmp_ds.NumberOfFrames
+            tmp_ds.InstanceNumber = idx + 1
+            tmp_ds.PixelData = img[idx, :].squeeze().tobytes()
+            tmp_ds.save_as(target, write_like_original=False)
 
 
 @cli.command(help="Initialize input directory structure.")
