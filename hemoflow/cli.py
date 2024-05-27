@@ -145,18 +145,21 @@ def patch(path, instance, channels):
 @cli.command(help="Fix multiframe dicom file.")
 @click.argument("file", required=True, type=click.Path())
 def fix(file):
+    # check first if path exists
+    axis = os.path.basename(file)
+    if not os.path.isdir(f"files/{axis}"):
+        os.mkdir(f"files/{axis}")
     with open(file, "rb") as f:
         ds = pd.dcmread(f)
         n = int(ds.NumberOfFrames)
+        logger.info(f"Detected {n} frames.")
 
         img = ds.pixel_array.squeeze()
 
-        essentials = [0x0020, 0x0028]
-
-        logger.info(n)
+        essentials = [0x0008, 0x0010, 0x0020, 0x0028]
 
         for idx in range(n):
-            target = os.path.join("files/AP", f"img{idx:02d}.dcm")
+            target = os.path.join(f"files/{axis}", f"img{idx:03d}.dcm")
 
             file_meta = pd.dataset.FileMetaDataset()
             file_meta.MediaStorageSOPClassUID = pd.uid.MRImageStorage
@@ -201,7 +204,7 @@ def init(path):
         # create rl directory
         rl_path = os.path.join(path, "RL")
         os.mkdir(rl_path)
-        logger.info(f"Created Rl directory in {rl_path}")
+        logger.info(f"Created RL directory in {rl_path}")
 
 
 if __name__ == "__main__":
