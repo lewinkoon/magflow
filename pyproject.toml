@@ -12,6 +12,7 @@ tqdm = "^4.66.2"
 pydicom = "^2.4.4"
 rich = "^13.7.1"
 click = "^8.1.7"
+setuptools = "^70.0.0"
 
 [tool.poetry.scripts]
 hemoflow = 'hemoflow.cli:cli'
