@@ -189,7 +189,7 @@ def fix(file):
         essentials = [0x0008, 0x0010, 0x0018, 0x0020, 0x0028]
 
         for idx in range(n):
-            target = os.path.join(f"files\{axis}", f"img{idx:03d}.dcm")
+            target = os.path.join(f"files/{axis}", f"img{idx:03d}.dcm")
 
             file_meta = pd.dataset.FileMetaDataset()
             file_meta.MediaStorageSOPClassUID = pd.uid.MRImageStorage
