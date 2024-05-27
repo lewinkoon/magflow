@@ -66,18 +66,46 @@ def build(frames):
 
 
 @cli.command(help="Check dicom file metadata.")
-@click.argument("path1", required=True, type=click.Path())
+@click.argument("path", required=True, type=click.Path())
 def check(path):
     with open(path, "rb") as file:
         ds = pd.dcmread(file)
         logger.info(f"File: {path}")
-        logger.info(f"Axis: {ds[0x0008, 0x103E].value}")
-        logger.info(f"Instance number: {ds[0x0020, 0x0013].value}")
-        logger.info(f"Pixel spacing: {ds[0x0028, 0x0030].value} mm")
-        logger.info(f"Image shape: {ds.pixel_array.shape}")
-        logger.info(f"Slice location: {ds[0x0020, 0x1041].value}")
-        logger.info(f"Spacing between slices: {ds[0x0018, 0x0088].value} mm")
-        logger.info(f"Trigger time: {ds[0x0018, 0x1060].value} ms")
+
+        try:
+            logger.info(f"Axis: {ds[0x0008, 0x103E].value}")
+        except:
+            logger.error(f"Axis tag not found.")
+
+        try:
+            logger.info(f"Instance number: {ds[0x0020, 0x0013].value}")
+        except:
+            logger.error(f"Instance number not found.")
+
+        try:
+            logger.info(f"Image shape: {ds.pixel_array.shape}")
+        except:
+            logger.error(f"Pixel array not found.")
+
+        try:
+            logger.info(f"Pixel spacing: {ds[0x0028, 0x0030].value} mm")
+        except:
+            logger.error(f"Pixel spacing not found.")
+
+        try:
+            logger.info(f"Spacing between slices: {ds[0x0018, 0x0088].value} mm")
+        except:
+            logger.error(f"Spacing between slices not found.")
+
+        try:
+            logger.info(f"Slice location: {ds[0x0020, 0x1041].value}")
+        except:
+            logger.error(f"Slice location not found.")
+
+        try:
+            logger.info(f"Trigger time: {ds[0x0020, 0x9153].value} ms")
+        except:
+            logger.error(f"Trigger time not found.")
 
 
 @cli.command(help="Remove exported data.")
@@ -146,9 +174,11 @@ def patch(path, instance, channels):
 @click.argument("file", required=True, type=click.Path())
 def fix(file):
     # check first if path exists
-    axis = os.path.basename(file)
+    path = os.path.basename(file)
+    axis = os.path.splitext(path)[0]
     if not os.path.isdir(f"files/{axis}"):
         os.mkdir(f"files/{axis}")
+
     with open(file, "rb") as f:
         ds = pd.dcmread(f)
         n = int(ds.NumberOfFrames)
@@ -156,10 +186,10 @@ def fix(file):
 
         img = ds.pixel_array.squeeze()
 
-        essentials = [0x0008, 0x0010, 0x0020, 0x0028]
+        essentials = [0x0008, 0x0010, 0x0018, 0x0020, 0x0028]
 
         for idx in range(n):
-            target = os.path.join(f"files/{axis}", f"img{idx:03d}.dcm")
+            target = os.path.join(f"files\{axis}", f"img{idx:03d}.dcm")
 
             file_meta = pd.dataset.FileMetaDataset()
             file_meta.MediaStorageSOPClassUID = pd.uid.MRImageStorage
@@ -177,10 +207,33 @@ def fix(file):
                 for key, value in ds.group_dataset(group).items():
                     tmp_ds[key] = value
 
+            sfgs = ds.SharedFunctionalGroupsSequence[0]
+            pffgs = ds.PerFrameFunctionalGroupsSequence[idx]
+
+            # copy velocity tags
+            for tag_name in ["RescaleIntercept", "RescaleSlope", "RescaleType"]:
+                if tag_name in sfgs[(0x0040, 0x9096)][0]:
+                    value = sfgs[(0x0040, 0x9096)][0][tag_name].value
+                    setattr(tmp_ds, tag_name, value)
+
+            # copy velocity tags
+            for tag_name in ["SpacingBetweenSlices", "PixelSpacing", "SliceThickness"]:
+                if tag_name in pffgs[(0x0028, 0x9110)][0]:
+                    value = pffgs[(0x0028, 0x9110)][0][tag_name].value
+                    setattr(tmp_ds, tag_name, value)
+
+            # copy trigger time
+            for tag_name in ["NominalCardiacTriggerDelayTime"]:
+                if tag_name in pffgs[(0x0018, 0x9118)][0]:
+                    value = pffgs[(0x0018, 0x9118)][0][tag_name].value
+                    setattr(tmp_ds, tag_name, value)
+
             del tmp_ds.NumberOfFrames
             tmp_ds.InstanceNumber = idx + 1
             tmp_ds.PixelData = img[idx, :].squeeze().tobytes()
             tmp_ds.save_as(target, write_like_original=False)
+
+            logger.info(f"Image exported as {target}")
 
 
 @cli.command(help="Initialize input directory structure.")
