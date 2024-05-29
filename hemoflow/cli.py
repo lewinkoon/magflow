@@ -20,18 +20,17 @@ def cli():
 
 
 @cli.command(help="Create volumetric velocity field from dicom files.")
-@click.argument("path", default="files", type=click.Path())
 @click.option("--frames", type=int, help="Number of frames in the sequence.")
 def build(frames):
 
-    def wrapper(fh, rl, ap, voxel, time):
-        fh = hf.filter(fh, time)
-        rl = hf.filter(rl, time)
-        ap = hf.filter(ap, time)
+    # def wrapper(fh, rl, ap, voxel, time):
+    #     fh = hf.filter(fh, time)
+    #     rl = hf.filter(rl, time)
+    #     ap = hf.filter(ap, time)
 
-        data = hf.tabulate(fh, rl, ap, voxel, time)
-        hf.export(data, time)
-        logger.info(f"Trigger time {time} exported with {len(data)} rows.")
+    #     data = hf.tabulate(fh, rl, ap, voxel, time)
+    #     hf.export(data, time)
+    #     logger.info(f"Trigger time {time} exported with {len(data)} rows.")
 
     # create a list of dictionaries with the read data
     fh = hf.parse("FH", frames)
@@ -42,16 +41,12 @@ def build(frames):
     logger.info(f"AP series: {len(ap)} images.")
 
     # list unique trigger times
-    timeframes = sorted(set(item["time"] for item in fh))
-    logger.info(f"Timeframes: {len(timeframes)}")
+    timeframes = sorted(set(item["time"] for item in rl))
+    logger.info(f"Timeframes: {timeframes}")
 
     # get volume dimensions
-    volume = (
-        fh[0]["pxl"].shape[0],
-        fh[0]["pxl"].shape[1],
-        len(set(item["loc"] for item in fh)),
-    )
-    logger.info(f"Volume dimensions: ({volume[0]} px, {volume[1]} px, {volume[2]} px)")
+    volume = (fh[0]["pxl"].shape[0], fh[0]["pxl"].shape[1])
+    logger.info(f"Volume dimensions: ({volume[0]} px, {volume[1]} px)")
 
     # get voxel spacing
     voxel = (fh[0]["spacing"][0], fh[0]["spacing"][1], fh[0]["height"])
@@ -59,11 +54,20 @@ def build(frames):
         f"Voxel dimensions: ({voxel[0]:.2f} mm, {voxel[1]:.2f} mm, {voxel[2]:.2f} mm)"
     )
 
+    for time in timeframes:
+        fh_filtered = hf.filter(fh, time)
+        rl_filtered = hf.filter(rl, time)
+        ap_filtered = hf.filter(ap, time)
+
+        data = hf.tabulate(fh_filtered, rl_filtered, ap_filtered, voxel, time)
+        hf.export(data, time)
+        logger.info(f"Trigger time {time} exported with {len(data)} rows.")
+
     # export csv files with multiprocessing
-    worker = partial(wrapper, fh, rl, ap, voxel)
-    with multiprocessing.Pool() as pool:
-        pool.map(worker, timeframes)
-    logger.info("Script finished successfully.")
+    # worker = partial(wrapper, fh, rl, ap, voxel)
+    # with multiprocessing.Pool() as pool:
+    #     pool.map(worker, timeframes)
+    # logger.info("Script finished successfully.")
 
 
 @cli.command(help="Check dicom file metadata.")

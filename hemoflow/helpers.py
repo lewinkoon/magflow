@@ -19,7 +19,7 @@ def parse(axis, frames=None):
         with open(file_path, "rb") as file:
             ds = dcmread(file)
 
-            # image array
+            # assign image array
             if ds[0x0028, 0x0004].value == "MONOCHROME2":
                 img = ds.pixel_array
             else:
@@ -27,45 +27,20 @@ def parse(axis, frames=None):
             slice["pxl"] = img
             slice["val"] = apply_modality_lut(img, ds)
 
-            # series description
-            slice["axis"] = ds[0x0008, 0x103E].value
-
-            # instance number
-            try:
-                slice["num"] = ds[0x0020, 0x0013].value
-            except:
-                logger.error("Instance number tag could not read. Try fix command.")
-                sys.exit(1)
-
-            # pixel size
-            slice["spacing"] = ds[0x0028, 0x0030].value
-
-            # spacing between slices
-            slice["height"] = ds[0x0018, 0x0088].value
-
-            # trigger time
-            try:
-                slice["time"] = ds[0x0018, 0x1060].value
-                # slice["time"] = idx - (idx // frames) * frames
-            except:
-                logger.error("Trigger time tag could not read. Try manual mode.")
-                sys.exit(1)
-
-            # slice location
-            try:
-                slice["loc"] = ds[0x0020, 0x1041].value
-                # slice["loc"] = idx // frames
-            except:
-                logger.error("Slice location tag could not read. Try manual mode.")
-                sys.exit(1)
+            # assign tags
+            slice["axis"] = ds[0x0008, 0x103E].value  # axis name
+            slice["num"] = ds[0x0020, 0x0013].value  # instance number
+            slice["spacing"] = ds[0x0028, 0x0030].value  # pixel spacing
+            slice["height"] = ds[0x0018, 0x0088].value  # spacing between slices
+            slice["time"] = ds[0x0020, 0x9153].value  # trigger time
 
             res.append(slice)
     return res
 
 
-def filter(series, time):
+def filter(series, frame):
     # filter images by axis and time
-    res = [slice["val"] for slice in series if slice["time"] == time]
+    res = [slice["val"] for slice in series if slice["time"] == frame]
     return res
 
 
@@ -122,4 +97,4 @@ def show_tag(dataset, group, element):
         tag_value = dataset[group, element].value
         logger.info(f"{tag_name}: {tag_value}")
     except:
-        logger.error(f"[{group:04x},{element:04x}] tag not found.")
+        logger.error(f"[{group:04x},{element:04x}]: Not found.")
