@@ -87,42 +87,16 @@ def check(dicom):
 
     with open(dicom, "rb") as f:
         ds = pd.dcmread(f)
+
         logger.info(f"File: {dicom}")
+        logger.info(f"Image shape: {ds.pixel_array.shape}")
 
-        try:
-            logger.info(f"Axis: {ds[0x0008, 0x103E].value}")
-        except:
-            logger.error(f"Axis tag not found.")
-
-        try:
-            logger.info(f"Instance number: {ds[0x0020, 0x0013].value}")
-        except:
-            logger.error(f"Instance number not found.")
-
-        try:
-            logger.info(f"Image shape: {ds.pixel_array.shape}")
-        except:
-            logger.error(f"Pixel array not found.")
-
-        try:
-            logger.info(f"Pixel spacing: {ds[0x0028, 0x0030].value} mm")
-        except:
-            logger.error(f"Pixel spacing not found.")
-
-        try:
-            logger.info(f"Spacing between slices: {ds[0x0018, 0x0088].value} mm")
-        except:
-            logger.error(f"Spacing between slices not found.")
-
-        try:
-            logger.info(f"Slice location: {ds[0x0020, 0x1041].value}")
-        except:
-            logger.error(f"Slice location not found.")
-
-        try:
-            logger.info(f"Trigger time: {ds[0x0020, 0x9153].value} ms")
-        except:
-            logger.error(f"Trigger time not found.")
+        hf.show_tag(ds, 0x0008, 0x103E)  # axis name
+        hf.show_tag(ds, 0x0020, 0x0013)  # instance number
+        hf.show_tag(ds, 0x0028, 0x0030)  # pixel spacing
+        hf.show_tag(ds, 0x0018, 0x0088)  # spacing between slices
+        hf.show_tag(ds, 0x0020, 0x1041)  # slice location
+        hf.show_tag(ds, 0x0020, 0x9153)  # trigger time
 
 
 @cli.command(help="Remove exported data.")

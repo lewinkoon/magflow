@@ -114,3 +114,12 @@ def export(data, time):
         writer.writeheader()
         for row in data:
             writer.writerow(row)
+
+
+def show_tag(dataset, group, element):
+    try:
+        tag_name = dataset[group, element].name
+        tag_value = dataset[group, element].value
+        logger.info(f"{tag_name}: {tag_value}")
+    except:
+        logger.error(f"[{group:04x},{element:04x}] tag not found.")
