@@ -239,25 +239,29 @@ def fix(file):
 @cli.command(help="Initialize input directory structure.")
 @click.argument("path", default="files", type=click.Path())
 def init(path):
-    # check first if path exists
-    if os.path.exists(path):
-        logger.error(f"Directory already exists in {os.path.abspath(path)}")
-    else:
-        os.mkdir(path)
-        # create fh directory
-        fh_path = os.path.join(path, "FH")
-        os.mkdir(fh_path)
+    # create fh directory
+    fh_path = os.path.join(path, "FH")
+    if not os.path.exists(fh_path):
+        os.makedirs(fh_path)
         logger.info(f"Created FH directory in {fh_path}")
+    else:
+        logger.error(f"Directory already exists in {os.path.abspath(fh_path)}")
 
-        # create ap directory
-        ap_path = os.path.join(path, "AP")
-        os.mkdir(ap_path)
+    # create ap directory
+    ap_path = os.path.join(path, "AP")
+    if not os.path.exists(ap_path):
+        os.makedirs(ap_path)
         logger.info(f"Created AP directory in {ap_path}")
+    else:
+        logger.error(f"Directory already exists in {os.path.abspath(ap_path)}")
 
-        # create rl directory
-        rl_path = os.path.join(path, "RL")
-        os.mkdir(rl_path)
+    # create rl directory
+    rl_path = os.path.join(path, "RL")
+    if not os.path.exists(rl_path):
+        os.makedirs(rl_path)
         logger.info(f"Created RL directory in {rl_path}")
+    else:
+        logger.error(f"Directory already exists in {os.path.abspath(rl_path)}")
 
 
 if __name__ == "__main__":
