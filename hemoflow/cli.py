@@ -134,42 +134,6 @@ def clean():
             logger.error("Output directory cannot be removed.")
 
 
-@cli.command(help="Patch dicom series metadata.")
-@click.argument("path", required=True, type=click.Path())
-@click.option(
-    "--instance",
-    is_flag=True,
-    help="Patch instance number of each frame.",
-)
-@click.option(
-    "--channels",
-    is_flag=True,
-    help="Patch image channels.",
-)
-def patch(path, instance, channels):
-    for idx, file in enumerate(os.listdir(path)):
-        file_path = os.path.join(path, file)
-        with open(file_path, "rb") as f:
-            ds = pd.dcmread(f)
-
-            # fix instance number
-            if instance:
-                pre = ds[0x0020, 0x0013].value
-                post = idx
-                ds[0x0020, 0x0013].value = post
-                logger.info(f"{file}: Changed instance number from {pre} to {post}.")
-
-            if channels:
-                ds.pixel_array = np.mean(ds.pixel_array, axis=2)
-                logger.info(f"{file}: Fixed image channels.")
-
-            # check output directory
-            if not os.path.exists("output"):
-                os.makedirs("output")
-
-            ds.save_as(f"output/{idx:02d}.dcm")
-
-
 @cli.command(help="Fix multiframe dicom file.")
 @click.argument("file", required=True, type=click.Path())
 def fix(file):
@@ -177,7 +141,7 @@ def fix(file):
     path = os.path.basename(file)
     axis = os.path.splitext(path)[0]
     if not os.path.isdir(f"files/{axis}"):
-        os.mkdir(f"files/{axis}")
+        os.makedirs(f"files/{axis}")
 
     with open(file, "rb") as f:
         ds = pd.dcmread(f)
@@ -236,33 +200,37 @@ def fix(file):
             logger.info(f"Image exported as {target}")
 
 
-@cli.command(help="Initialize input directory structure.")
-@click.argument("path", default="files", type=click.Path())
-def init(path):
-    # create fh directory
-    fh_path = os.path.join(path, "FH")
-    if not os.path.exists(fh_path):
-        os.makedirs(fh_path)
-        logger.info(f"Created FH directory in {fh_path}")
-    else:
-        logger.error(f"Directory already exists in {os.path.abspath(fh_path)}")
+@cli.command(help="Patch dicom series metadata.")
+@click.argument("path", required=True, type=click.Path())
+@click.option(
+    "--instance",
+    is_flag=True,
+    help="Patch instance number of each frame.",
+)
+@click.option(
+    "--channels",
+    is_flag=True,
+    help="Patch image channels.",
+)
+def patch(path, instance, channels):
+    for idx, file in enumerate(os.listdir(path)):
+        file_path = os.path.join(path, file)
+        with open(file_path, "rb") as f:
+            ds = pd.dcmread(f)
 
-    # create ap directory
-    ap_path = os.path.join(path, "AP")
-    if not os.path.exists(ap_path):
-        os.makedirs(ap_path)
-        logger.info(f"Created AP directory in {ap_path}")
-    else:
-        logger.error(f"Directory already exists in {os.path.abspath(ap_path)}")
+            # fix instance number
+            if instance:
+                pre = ds[0x0020, 0x0013].value
+                post = idx
+                ds[0x0020, 0x0013].value = post
+                logger.info(f"{file}: Changed instance number from {pre} to {post}.")
 
-    # create rl directory
-    rl_path = os.path.join(path, "RL")
-    if not os.path.exists(rl_path):
-        os.makedirs(rl_path)
-        logger.info(f"Created RL directory in {rl_path}")
-    else:
-        logger.error(f"Directory already exists in {os.path.abspath(rl_path)}")
+            if channels:
+                ds.pixel_array = np.mean(ds.pixel_array, axis=2)
+                logger.info(f"{file}: Fixed image channels.")
 
+            # check output directory
+            if not os.path.exists("output"):
+                os.makedirs("output")
 
-if __name__ == "__main__":
-    cli()
+            ds.save_as(f"output/{idx:02d}.dcm")
