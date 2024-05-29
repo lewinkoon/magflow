@@ -6,6 +6,7 @@ from hemoflow.logger import logger
 import os
 import pydicom as pd
 import numpy as np
+import random
 
 
 @click.group(
@@ -66,11 +67,27 @@ def build(frames):
 
 
 @cli.command(help="Check dicom file metadata.")
-@click.argument("path", required=True, type=click.Path())
-def check(path):
-    with open(path, "rb") as file:
-        ds = pd.dcmread(file)
-        logger.info(f"File: {path}")
+@click.argument("dicom", required=False, type=click.Path())
+def check(dicom):
+    if dicom is None:
+        # list all files in the directory
+        dir = "files"
+        file_list = []
+        for root, dirs, files in os.walk(dir):
+            for file in files:
+                file_list.append(os.path.join(root, file))
+
+        # log warning if no files are found
+        if not file_list:
+            logger.error("No DICOM files found in the directory.")
+            return None
+
+        # select a random file
+        dicom = random.choice(file_list)
+
+    with open(dicom, "rb") as f:
+        ds = pd.dcmread(f)
+        logger.info(f"File: {dicom}")
 
         try:
             logger.info(f"Axis: {ds[0x0008, 0x103E].value}")
