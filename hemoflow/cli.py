@@ -171,8 +171,8 @@ def fix(file):
 
             # copy velocity tags
             for tag_name in ["RescaleIntercept", "RescaleSlope", "RescaleType"]:
-                if tag_name in sfgs[(0x0040, 0x9096)][0]:
-                    value = sfgs[(0x0040, 0x9096)][0][tag_name].value
+                if tag_name in pffgs[(0x0028, 0x9145)][0]:
+                    value = pffgs[(0x0028, 0x9145)][0][tag_name].value
                     setattr(tmp_ds, tag_name, value)
 
             # copy velocity tags
