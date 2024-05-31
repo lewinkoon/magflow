@@ -1,13 +1,9 @@
 import csv
-from itertools import count
 import numpy as np
 import os
 from pydicom import dcmread
 from pydicom.pixel_data_handlers.util import apply_modality_lut
-from pydicom.dataset import Dataset, FileMetaDataset
-from pydicom.sequence import Sequence
 from hemoflow.logger import logger
-import sys
 
 
 def parse(axis):
