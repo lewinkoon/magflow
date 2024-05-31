@@ -20,24 +20,17 @@ def cli():
 
 
 @cli.command(help="Create volumetric velocity field from dicom files.")
-@click.option("--frames", type=int, help="Number of frames in the sequence.")
-def build(frames):
-
-    # def wrapper(fh, rl, ap, voxel, time):
-    #     fh = hf.filter(fh, time)
-    #     rl = hf.filter(rl, time)
-    #     ap = hf.filter(ap, time)
-
-    #     data = hf.tabulate(fh, rl, ap, voxel, time)
-    #     hf.export(data, time)
-    #     logger.info(f"Trigger time {time} exported with {len(data)} rows.")
+@click.option(
+    "--parallel", is_flag=True, default=False, help="Activate multiprocessing mode."
+)
+def build(parallel):
 
     # create a list of dictionaries with the read data
-    fh = hf.parse("FH", frames)
+    fh = hf.parse("FH")
     logger.info(f"FH series: {len(fh)} images.")
-    rl = hf.parse("RL", frames)
+    rl = hf.parse("RL")
     logger.info(f"RL series: {len(rl)} images.")
-    ap = hf.parse("AP", frames)
+    ap = hf.parse("AP")
     logger.info(f"AP series: {len(ap)} images.")
 
     # list unique trigger times
@@ -54,20 +47,22 @@ def build(frames):
         f"Voxel dimensions: ({voxel[0]:.2f} mm, {voxel[1]:.2f} mm, {voxel[2]:.2f} mm)"
     )
 
-    for time in timeframes:
-        fh_filtered = hf.filter(fh, time)
-        rl_filtered = hf.filter(rl, time)
-        ap_filtered = hf.filter(ap, time)
+    if parallel:
+        # export csv files with multiprocessing
+        worker = partial(hf.wrapper, fh, rl, ap, voxel)
+        with multiprocessing.Pool() as pool:
+            pool.map(worker, timeframes)
+        logger.info("Script finished successfully.")
 
-        data = hf.tabulate(fh_filtered, rl_filtered, ap_filtered, voxel, time)
-        hf.export(data, time)
-        logger.info(f"Trigger time {time} exported with {len(data)} rows.")
+    else:
+        for time in timeframes:
+            fh_filtered = hf.filter(fh, time)
+            rl_filtered = hf.filter(rl, time)
+            ap_filtered = hf.filter(ap, time)
 
-    # export csv files with multiprocessing
-    # worker = partial(wrapper, fh, rl, ap, voxel)
-    # with multiprocessing.Pool() as pool:
-    #     pool.map(worker, timeframes)
-    # logger.info("Script finished successfully.")
+            data = hf.tabulate(fh_filtered, rl_filtered, ap_filtered, voxel, time)
+            hf.export(data, time)
+            logger.info(f"Trigger time {time} exported with {len(data)} rows.")
 
 
 @cli.command(help="Check dicom file metadata.")

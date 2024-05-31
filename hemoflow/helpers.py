@@ -10,7 +10,7 @@ from hemoflow.logger import logger
 import sys
 
 
-def parse(axis, frames=None):
+def parse(axis):
     res = []
     folder_path = f"files/{axis}"
     for idx, file in enumerate(os.listdir(folder_path)):
@@ -98,3 +98,13 @@ def show_tag(dataset, group, element):
         logger.info(f"{tag_name}: {tag_value}")
     except:
         logger.error(f"[{group:04x},{element:04x}]: Not found.")
+
+
+def wrapper(fh, rl, ap, voxel, time):
+    fh_filtered = filter(fh, time)
+    rl_filtered = filter(rl, time)
+    ap_filtered = filter(ap, time)
+
+    data = tabulate(fh_filtered, rl_filtered, ap_filtered, voxel, time)
+    export(data, time)
+    logger.info(f"Trigger time {time} exported with {len(data)} rows.")
