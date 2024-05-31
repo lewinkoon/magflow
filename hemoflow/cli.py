@@ -130,7 +130,7 @@ def clean():
 
 
 @cli.command(help="Fix multiframe dicom file.")
-@click.argument("file", required=True, type=click.Path())
+@click.argument("file", required=True, type=click.Path(exists=True))
 def fix(file):
     # check first if path exists
     path = os.path.basename(file)
