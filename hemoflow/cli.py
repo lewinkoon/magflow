@@ -24,7 +24,6 @@ def cli():
     "--parallel", is_flag=True, default=False, help="Activate multiprocessing mode."
 )
 def build(parallel):
-
     # create a list of dictionaries with the read data
     fh = hf.parse("FH")
     logger.info(f"FH series: {len(fh)} images.")
