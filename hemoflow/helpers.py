@@ -32,7 +32,7 @@ def parse(axis, frames=None):
             slice["num"] = ds[0x0020, 0x0013].value  # instance number
             slice["spacing"] = ds[0x0028, 0x0030].value  # pixel spacing
             slice["height"] = ds[0x0018, 0x0088].value  # spacing between slices
-            slice["time"] = ds[0x0020, 0x9153].value  # trigger time
+            slice["time"] = int(ds[0x0020, 0x9153].value)  # trigger time
 
             res.append(slice)
     return res
