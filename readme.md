@@ -21,8 +21,8 @@ Change into the project directory
 cd hemoflow
 ```
 
-> [!NOTE] Custom virtual environment
-> Create a virtual environment inside project directory.
+> [!TIP]
+> Create a custom virtual environment inside project directory.
 > 
 > ```shell
 > python -m venv .venv
