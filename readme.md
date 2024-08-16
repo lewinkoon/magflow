@@ -6,6 +6,9 @@
 
 ## Setup
 
+> [!IMPORTANT]  
+> [Poetry](https://python-poetry.org/) dependency manager is required to run this project.
+
 Clone the repository
 
 ```shell
@@ -18,15 +21,8 @@ Change into the project directory
 cd hemoflow
 ```
 
-Install `poetry` dependency manager
-
-```shell
-python -m pip install poetry
-```
-
-In case you want to create a virtual environment inside the project. Otherwise ignore these steps.
-
-> Create a virtual environment inside the directory
+> [!NOTE] Custom virtual environment
+> Create a virtual environment inside project directory.
 > 
 > ```shell
 > python -m venv .venv
