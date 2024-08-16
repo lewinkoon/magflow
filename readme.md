@@ -18,24 +18,26 @@ Change into the project directory
 cd hemoflow
 ```
 
-Create a virtual environment inside the directory
-
-```shell
-python -m venv .venv
-```
-
-Activate the previously created virtual environment
-
-```shell
-.venv\Scripts\activate # on Windows
-source .venv/bin/activate # on Unix or MacOS
-```
-
 Install `poetry` dependency manager
 
 ```shell
 python -m pip install poetry
 ```
+
+In case you want to create a virtual environment inside the project. Otherwise ignore these steps.
+
+> Create a virtual environment inside the directory
+> 
+> ```shell
+> python -m venv .venv
+> ```
+> 
+> Activate the previously created virtual environment
+> 
+> ```shell
+> .venv\Scripts\activate # on Windows
+> source .venv/bin/activate # on Unix or MacOS
+> ```
 
 Install the required dependencies for the project
 
