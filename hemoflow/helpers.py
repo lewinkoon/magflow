@@ -3,6 +3,7 @@ import numpy as np
 import os
 from pydicom import dcmread
 from pydicom.pixel_data_handlers.util import apply_modality_lut
+import vtk
 from hemoflow.logger import logger
 
 
@@ -74,10 +75,10 @@ def mask(fh, rl, ap, mk):
     return fh, rl, ap
 
 
-def export(data, time):
-    # export data as csv
+def tocsv(data, time):
     if not os.path.exists("output"):
         os.makedirs("output")
+
     fields = data[0].keys()
     path = f"output/data.csv.{time}"
     with open(path, mode="w", newline="") as file:
@@ -85,6 +86,30 @@ def export(data, time):
         writer.writeheader()
         for row in data:
             writer.writerow(row)
+
+
+def tovtk(data, time):
+    if not os.path.exists("output"):
+        os.makedirs("output")
+
+    points = vtk.vtkPoints()
+    vectors = vtk.vtkFloatArray()
+    vectors.SetNumberOfComponents(3)
+    vectors.SetName("Velocity")
+    for point in data:
+        points.InsertNextPoint(point["x"], point["y"], point["z"])
+        vector = (point["vx"], point["vy"], point["vz"])
+        vectors.InsertNextTuple(vector)
+
+    sgrid = vtk.vtkStructuredGrid()
+    sgrid.SetDimensions(128, 128, 40)
+    sgrid.SetPoints(points)
+    sgrid.GetPointData().SetVectors(vectors)
+
+    writer = vtk.vtkXMLStructuredGridWriter()
+    writer.SetFileName(f"output/data.vts.{time}")
+    writer.SetInputData(sgrid)
+    writer.Write()
 
 
 def show_tag(dataset, group, element):
@@ -96,11 +121,14 @@ def show_tag(dataset, group, element):
         logger.error(f"[{group:04x},{element:04x}]: Not found.")
 
 
-def wrapper(fh, rl, ap, voxel, time):
+def wrapper(raw, fh, rl, ap, voxel, time):
     fh_filtered = filter(fh, time)
     rl_filtered = filter(rl, time)
     ap_filtered = filter(ap, time)
 
     data = tabulate(fh_filtered, rl_filtered, ap_filtered, voxel, time)
-    export(data, time)
+    if raw:
+        tocsv(data, time)
+    else:
+        tovtk(data, time)
     logger.info(f"Trigger time {time} exported with {len(data)} rows.")

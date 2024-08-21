@@ -21,9 +21,12 @@ def cli():
 
 @cli.command(help="Create volumetric velocity field from dicom files.")
 @click.option(
+    "--raw", is_flag=True, default=False, help="Export comma delimited values."
+)
+@click.option(
     "--parallel", is_flag=True, default=False, help="Activate multiprocessing mode."
 )
-def build(parallel):
+def build(raw, parallel):
     # create a list of dictionaries with the read data
     fh = hf.parse("FH")
     logger.info(f"FH series: {len(fh)} images.")
@@ -48,11 +51,10 @@ def build(parallel):
 
     if parallel:
         # export csv files with multiprocessing
-        worker = partial(hf.wrapper, fh, rl, ap, voxel)
+        worker = partial(hf.wrapper, raw, fh, rl, ap, voxel)
         with multiprocessing.Pool() as pool:
             pool.map(worker, timeframes)
         logger.info("Script finished successfully.")
-
     else:
         for time in timeframes:
             fh_filtered = hf.filter(fh, time)
@@ -60,7 +62,10 @@ def build(parallel):
             ap_filtered = hf.filter(ap, time)
 
             data = hf.tabulate(fh_filtered, rl_filtered, ap_filtered, voxel, time)
-            hf.export(data, time)
+            if raw:
+                hf.tocsv(data, time)
+            else:
+                hf.tovtk(data, time)
             logger.info(f"Trigger time {time} exported with {len(data)} rows.")
 
 
