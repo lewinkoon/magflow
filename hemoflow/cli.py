@@ -129,90 +129,92 @@ def clean():
             logger.error("Output directory cannot be removed.")
 
 
-@cli.command(help="Fix multiframe dicom file.")
-@click.argument("file", required=True, type=click.Path(exists=True))
-def fix(file):
-    # check first if path exists
-    path = os.path.basename(file)
-    axis = os.path.splitext(path)[0]
-    if not os.path.isdir(f"files/{axis}"):
-        os.makedirs(f"files/{axis}")
-
-    with open(file, "rb") as f:
-        ds = pd.dcmread(f)
-        n = int(ds.NumberOfFrames)
-        logger.info(f"Detected {n} frames.")
-
-        img = ds.pixel_array.squeeze()
-
-        essentials = [0x0008, 0x0010, 0x0018, 0x0020, 0x0028]
-
-        for idx in range(n):
-            target = os.path.join(f"files/{axis}", f"img{idx:03d}.dcm")
-
-            file_meta = pd.dataset.FileMetaDataset()
-            file_meta.MediaStorageSOPClassUID = pd.uid.MRImageStorage
-            file_meta.MediaStorageSOPInstanceUID = pd.uid.generate_uid()
-            file_meta.TransferSyntaxUID = pd.uid.ImplicitVRLittleEndian
-
-            tmp_ds = pd.dataset.Dataset()
-            tmp_ds.file_meta = file_meta
-            tmp_ds.is_little_endian = (
-                tmp_ds.file_meta.TransferSyntaxUID.is_little_endian
-            )
-            tmp_ds.is_implicit_VR = tmp_ds.file_meta.TransferSyntaxUID.is_implicit_VR
-
-            for group in essentials:
-                for key, value in ds.group_dataset(group).items():
-                    tmp_ds[key] = value
-
-            sfgs = ds.SharedFunctionalGroupsSequence[0]
-            pffgs = ds.PerFrameFunctionalGroupsSequence[idx]
-
-            # copy velocity tags
-            for tag_name in ["RescaleIntercept", "RescaleSlope", "RescaleType"]:
-                if tag_name in pffgs[(0x0028, 0x9145)][0]:
-                    value = pffgs[(0x0028, 0x9145)][0][tag_name].value
-                    setattr(tmp_ds, tag_name, value)
-
-            # copy velocity tags
-            for tag_name in ["SpacingBetweenSlices", "PixelSpacing", "SliceThickness"]:
-                if tag_name in pffgs[(0x0028, 0x9110)][0]:
-                    value = pffgs[(0x0028, 0x9110)][0][tag_name].value
-                    setattr(tmp_ds, tag_name, value)
-
-            # copy trigger time
-            for tag_name in ["NominalCardiacTriggerDelayTime"]:
-                if tag_name in pffgs[(0x0018, 0x9118)][0]:
-                    value = pffgs[(0x0018, 0x9118)][0][tag_name].value
-                    setattr(tmp_ds, tag_name, value)
-
-            del tmp_ds.NumberOfFrames
-            tmp_ds.InstanceNumber = idx + 1
-            tmp_ds.PixelData = img[idx, :].squeeze().tobytes()
-            tmp_ds.save_as(target, write_like_original=False)
-
-            logger.info(f"Image exported as {target}")
-
-
 @cli.command(help="Load dicom image series.")
 @click.option(
-    "--axis", required=True, type=click.Choice(["fh", "rl", "ap"], case_sensitive=False)
+    "--axis",
+    required=True,
+    type=click.Choice(["fh", "rl", "ap"], case_sensitive=False),
+    help="Flow axis.",
 )
-@click.argument("src_dir", required=True, type=click.Path(exists=True))
-def load(src_dir, axis):
+@click.option(
+    "--multiframe", is_flag=True, default=False, help="Fix multiframe dicom files."
+)
+@click.argument("pathname", required=True, type=click.Path(exists=True))
+def load(pathname, axis, multiframe):
     dst_dir = f"files/{axis}"
-
     if not os.path.exists(dst_dir):
         os.makedirs(dst_dir)
 
-    for idx, filename in enumerate(os.listdir(src_dir)):
-        src_file = os.path.join(src_dir, filename)
-        dst_file = os.path.join(dst_dir, f"img{idx:04}.dcm")
+    if multiframe:
+        with open(pathname, "rb") as f:
+            ds = pd.dcmread(f)
+            n = int(ds.NumberOfFrames)
+            logger.info(f"Detected {n} frames.")
 
-        if os.path.isfile(src_file):
-            shutil.copy(src_file, dst_file)
-            logger.info(f"Copied {src_file} to {dst_file}.")
+            img = ds.pixel_array.squeeze()
+
+            essentials = [0x0008, 0x0010, 0x0018, 0x0020, 0x0028]
+
+            for idx in range(n):
+                target = os.path.join(f"files/{axis}", f"img{idx:04}.dcm")
+
+                file_meta = pd.dataset.FileMetaDataset()
+                file_meta.MediaStorageSOPClassUID = pd.uid.MRImageStorage
+                file_meta.MediaStorageSOPInstanceUID = pd.uid.generate_uid()
+                file_meta.TransferSyntaxUID = pd.uid.ImplicitVRLittleEndian
+
+                tmp_ds = pd.dataset.Dataset()
+                tmp_ds.file_meta = file_meta
+                tmp_ds.is_little_endian = (
+                    tmp_ds.file_meta.TransferSyntaxUID.is_little_endian
+                )
+                tmp_ds.is_implicit_VR = (
+                    tmp_ds.file_meta.TransferSyntaxUID.is_implicit_VR
+                )
+
+                for group in essentials:
+                    for key, value in ds.group_dataset(group).items():
+                        tmp_ds[key] = value
+
+                sfgs = ds.SharedFunctionalGroupsSequence[0]
+                pffgs = ds.PerFrameFunctionalGroupsSequence[idx]
+
+                # copy velocity tags
+                for tag_name in ["RescaleIntercept", "RescaleSlope", "RescaleType"]:
+                    if tag_name in pffgs[(0x0028, 0x9145)][0]:
+                        value = pffgs[(0x0028, 0x9145)][0][tag_name].value
+                        setattr(tmp_ds, tag_name, value)
+
+                # copy velocity tags
+                for tag_name in [
+                    "SpacingBetweenSlices",
+                    "PixelSpacing",
+                    "SliceThickness",
+                ]:
+                    if tag_name in pffgs[(0x0028, 0x9110)][0]:
+                        value = pffgs[(0x0028, 0x9110)][0][tag_name].value
+                        setattr(tmp_ds, tag_name, value)
+
+                # copy trigger time
+                for tag_name in ["NominalCardiacTriggerDelayTime"]:
+                    if tag_name in pffgs[(0x0018, 0x9118)][0]:
+                        value = pffgs[(0x0018, 0x9118)][0][tag_name].value
+                        setattr(tmp_ds, tag_name, value)
+
+                del tmp_ds.NumberOfFrames
+                tmp_ds.InstanceNumber = idx + 1
+                tmp_ds.PixelData = img[idx, :].squeeze().tobytes()
+                tmp_ds.save_as(target, write_like_original=False)
+
+                logger.info(f"Image exported as {target}")
+    else:
+        for idx, filename in enumerate(os.listdir(pathname)):
+            src_file = os.path.join(pathname, filename)
+            dst_file = os.path.join(dst_dir, f"img{idx:04}.dcm")
+
+            if os.path.isfile(src_file):
+                shutil.copy(src_file, dst_file)
+                logger.info(f"Copied {src_file} to {dst_file}.")
 
 
 @cli.command(help="Patch dicom series metadata.")
