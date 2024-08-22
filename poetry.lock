@@ -633,26 +633,6 @@ files = [
 ]
 
 [[package]]
-name = "tqdm"
-version = "4.66.5"
-description = "Fast, Extensible Progress Meter"
-optional = false
-python-versions = ">=3.7"
-files = [
-    {file = "tqdm-4.66.5-py3-none-any.whl", hash = "sha256:90279a3770753eafc9194a0364852159802111925aa30eb3f9d85b0e805ac7cd"},
-    {file = "tqdm-4.66.5.tar.gz", hash = "sha256:e1020aef2e5096702d8a025ac7d16b1577279c9d63f8375b63083e9a5f0fcbad"},
-]
-
-[package.dependencies]
-colorama = {version = "*", markers = "platform_system == \"Windows\""}
-
-[package.extras]
-dev = ["pytest (>=6)", "pytest-cov", "pytest-timeout", "pytest-xdist"]
-notebook = ["ipywidgets (>=6)"]
-slack = ["slack-sdk"]
-telegram = ["requests"]
-
-[[package]]
 name = "vtk"
 version = "9.3.1"
 description = "VTK is an open-source toolkit for 3D computer graphics, image processing, and visualization"
@@ -696,4 +676,4 @@ web = ["wslink (>=1.0.4)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "e7b906d46d680434b92a3a6d4d261bced410ea8c63fa1468cc745e895f787c36"
+content-hash = "75a8d72b2fd49fecad8a24332b8309c5b174ba88e40b1f438448da49d9205d76"
