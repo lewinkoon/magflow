@@ -7,6 +7,7 @@ import os
 import pydicom as pd
 import numpy as np
 import random
+import shutil
 
 
 @click.group(
@@ -192,6 +193,26 @@ def fix(file):
             tmp_ds.save_as(target, write_like_original=False)
 
             logger.info(f"Image exported as {target}")
+
+
+@cli.command(help="Load dicom image series.")
+@click.option(
+    "--axis", required=True, type=click.Choice(["fh", "rl", "ap"], case_sensitive=False)
+)
+@click.argument("src_dir", required=True, type=click.Path(exists=True))
+def load(src_dir, axis):
+    dst_dir = f"files/{axis}"
+
+    if not os.path.exists(dst_dir):
+        os.makedirs(dst_dir)
+
+    for idx, filename in enumerate(os.listdir(src_dir)):
+        src_file = os.path.join(src_dir, filename)
+        dst_file = os.path.join(dst_dir, f"img{idx:04}.dcm")
+
+        if os.path.isfile(src_file):
+            shutil.copy(src_file, dst_file)
+            logger.info(f"Copied {src_file} to {dst_file}.")
 
 
 @cli.command(help="Patch dicom series metadata.")

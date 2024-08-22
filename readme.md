@@ -15,20 +15,20 @@ Clone the repository
 git clone https://github.com/lewinkoon/hemoflow
 ```
 
-Change into the project directory
+Move into the project directory
 
 ```shell
 cd hemoflow
 ```
 
-> [!TIP]
-> Create a custom virtual environment inside project directory.
+> [!NOTE]
+> If needed a custom virtual environment can be created inside project directory.
 > 
 > ```shell
 > python -m venv .venv
 > ```
 > 
-> Activate the previously created virtual environment
+> Activate the previously created virtual environment.
 > 
 > ```shell
 > .venv\Scripts\activate # on Windows
@@ -41,41 +41,47 @@ Install the required dependencies for the project
 poetry install
 ```
 
-## Import dicom files
+## Usage
 
-Create the required file directories
+Load the required dicom files.
 
 ```shell
-hemoflow init
+hemoflow load PATH
 ```
-The four directories correspond with the following image series:
+
+> [!IMPORTANT]
+> To load multiframe `dicom` files use the option `--multiframe`
+> 
+> ```shell
+> hemoflow load --multiframe PATH
+> ```
+
+In total, three series of images should be loaded and they should correspond with each one of the CT axis directions.
 
 - **FH** - Feet to head flow images.
 - **AP** - Anterior to posterior flow images.
 - **RL** - Right to left flow images.
 
-Copy your `dicom` image series to `files/` directory.
+The files directory should look similar to this.
 
 ```
 files/
-├───FH
-│   ├───IM1.DCM
-│   ├───IM2.DCM
+├───fh
+│   ├───img0001.dcm
+│   ├───img0002.dcm
 │   ├───...
-│   └───IMX.DCM
-├───AP
-│   ├───IM1.DCM
-│   ├───IM2.DCM
+│   └───img9999.dcm
+├───ap
+│   ├───img0001.dcm
+│   ├───img0002.dcm
 │   ├───...
-│   └───IMX.DCM
-└───RL
-    ├───IM1.DCM
-    ├───IM2.DCM
+│   └───img9999.dcm
+└───rl
+    ├───img0001.dcm
+    ├───img0002.dcm
     ├───...
-    └───IMX.DCM
+    └───img9999.dcm
 ```
-
-## Run the script
 
 Finally, build volumetric the velocity field from dicom files.
 
@@ -83,15 +89,29 @@ Finally, build volumetric the velocity field from dicom files.
 hemoflow build
 ```
 
-Data files in `.csv` format will be created for each timestep in `output/` folder.
+> [!TIP]
+> Use the option `--parallel` to to make it faster.
+>
+> ```shell
+> hemoflow build --parallel
+> ```
+
+Data files in `vtk` format will be created for each timestep in `output/` folder.
 
 ```
 output/
-├───data.csv.0
-├───data.csv.26
+├───data.vts.0
+├───data.vts.26
 ├───...
-└───data.csv.603
+└───data.vts.603
 ```
+
+> [!TIP]
+> It is possible to output the data in `.csv` format instead of `.vts`.
+>
+> ```shell
+> hemoflow build --raw
+> ```
 
 Each dataframe will have cordinates and velocity components for each axis.
 
@@ -100,4 +120,4 @@ Each dataframe will have cordinates and velocity components for each axis.
 
 # License
 
-This project is licensed under the **MIT License**. See `license.txt` file for details.
+This project is licensed under the **GPL-2.0 License**. See `license.txt` file for details.
