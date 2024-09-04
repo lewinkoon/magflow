@@ -51,13 +51,14 @@ def build(raw, parallel):
     )
 
     if parallel:
-        # export csv files with multiprocessing
+        # map each timeframe to a different process
         worker = partial(hf.wrapper, raw, fh, rl, ap, voxel)
         with multiprocessing.Pool() as pool:
             pool.map(worker, timeframes)
         logger.info("Script finished successfully.")
     else:
         for time in timeframes:
+            # filter data for a single timeframe
             fh_filtered = hf.filter(fh, time)
             rl_filtered = hf.filter(rl, time)
             ap_filtered = hf.filter(ap, time)
@@ -71,7 +72,7 @@ def build(raw, parallel):
 
 
 @cli.command(help="Check dicom file metadata.")
-@click.argument("dicom", required=False, type=click.Path())
+@click.argument("dicom", required=True, type=click.Path())
 def check(dicom):
     if dicom is None:
         # list all files in the directory
@@ -95,12 +96,12 @@ def check(dicom):
         logger.info(f"File: {dicom}")
         logger.info(f"Image shape: {ds.pixel_array.shape}")
 
-        hf.show_tag(ds, 0x0008, 0x103E)  # axis name
-        hf.show_tag(ds, 0x0020, 0x0013)  # instance number
-        hf.show_tag(ds, 0x0028, 0x0030)  # pixel spacing
-        hf.show_tag(ds, 0x0018, 0x0088)  # spacing between slices
-        hf.show_tag(ds, 0x0020, 0x1041)  # slice location
-        hf.show_tag(ds, 0x0020, 0x9153)  # trigger time
+        hf.showtag(ds, 0x0008, 0x103E)  # axis name
+        hf.showtag(ds, 0x0020, 0x0013)  # instance number
+        hf.showtag(ds, 0x0028, 0x0030)  # pixel spacing
+        hf.showtag(ds, 0x0018, 0x0088)  # spacing between slices
+        hf.showtag(ds, 0x0020, 0x1041)  # slice location
+        hf.showtag(ds, 0x0020, 0x9153)  # trigger time
 
 
 @cli.command(help="Remove exported data.")
@@ -250,4 +251,4 @@ def patch(path, instance, channels):
             if not os.path.exists("output"):
                 os.makedirs("output")
 
-            ds.save_as(f"output/{idx:02d}.dcm")
+            ds.save_as(f"output/{idx:04}.dcm")
