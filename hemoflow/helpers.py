@@ -112,7 +112,7 @@ def tovtk(data, time):
     writer.Write()
 
 
-def show_tag(dataset, group, element):
+def showtag(dataset, group, element):
     try:
         tag_name = dataset[group, element].name
         tag_value = dataset[group, element].value
