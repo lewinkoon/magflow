@@ -93,18 +93,29 @@ def tovtk(data, time):
         os.makedirs("output")
 
     points = vtk.vtkPoints()
+
     vectors = vtk.vtkFloatArray()
     vectors.SetNumberOfComponents(3)
     vectors.SetName("Velocity")
+
+    scalars = vtk.vtkFloatArray()
+    scalars.SetNumberOfComponents(1)
+    scalars.SetName("Time")
+
     for point in data:
         points.InsertNextPoint(point["x"], point["y"], point["z"])
+
         vector = (point["vx"], point["vy"], point["vz"])
         vectors.InsertNextTuple(vector)
+
+        scalar = point["t"]
+        scalars.InsertNextTuple([scalar])
 
     sgrid = vtk.vtkStructuredGrid()
     sgrid.SetDimensions(128, 128, 40)
     sgrid.SetPoints(points)
     sgrid.GetPointData().SetVectors(vectors)
+    sgrid.GetPointData().SetScalars(scalars)
 
     writer = vtk.vtkXMLStructuredGridWriter()
     writer.SetFileName(f"output/data.vts.{time}")
