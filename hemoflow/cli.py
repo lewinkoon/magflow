@@ -177,7 +177,7 @@ def load(pathname, axis, multiframe):
                     for key, value in ds.group_dataset(group).items():
                         tmp_ds[key] = value
 
-                sfgs = ds.SharedFunctionalGroupsSequence[0]
+                # sfgs = ds.SharedFunctionalGroupsSequence[0]
                 pffgs = ds.PerFrameFunctionalGroupsSequence[idx]
 
                 # copy velocity tags
