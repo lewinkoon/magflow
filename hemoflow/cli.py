@@ -1,13 +1,15 @@
-import click
-from functools import partial
 import multiprocessing
-import hemoflow.helpers as hf
-from hemoflow.logger import logger
 import os
-import pydicom as pd
-import numpy as np
 import random
 import shutil
+from functools import partial
+
+import click
+import numpy as np
+import pydicom as pd
+
+import hemoflow.helpers as hf
+from hemoflow.logger import logger
 
 
 @click.group(
@@ -252,3 +254,7 @@ def patch(path, instance, channels):
                 os.makedirs("output")
 
             ds.save_as(f"output/{idx:04}.dcm")
+
+
+if __name__ == "__main__":
+    cli()
