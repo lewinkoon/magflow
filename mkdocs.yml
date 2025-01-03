@@ -1,0 +1,42 @@
+site_name: Hemoflow
+site_url: https://github.com.lewinkoon.io/hemoflow
+site_author: Lewin
+
+# Navigation structure
+nav:
+  - Introduction: index.md
+
+theme:
+  name: material
+  icon:
+    repo: fontawesome/brands/github
+  features:
+    - navigation.tabs
+    - toc.follow
+  palette:
+    # Palette toggle for automatic mode
+    - media: "(prefers-color-scheme)"
+      toggle:
+        icon: material/brightness-auto
+        name: Switch to light mode
+
+    # Palette toggle for light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default 
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+
+    # Palette toggle for dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Switch to system preference
+
+# Repository configuration
+repo_url: https://github.com/lewinkoon/hemoflow
+repo_name: GitHub
+
+# Output directory
+site_dir: site
