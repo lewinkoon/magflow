@@ -1,23 +1,13 @@
-[tool.poetry]
+[project]
 name = "hemoflow"
 version = "0.1.0"
 description = "Visualize velocity image series from a phase contrast magnetic resonance imaging study as three-dimensional vector field."
-authors = ["Lewin <57636993+lewinkoon@users.noreply.github.com>"]
 readme = "readme.md"
+requires-python = ">=3.12"
+dependencies = ["pydicom>=3.0.1", "streamlit>=1.41.1"]
 
-[tool.poetry.dependencies]
-python = "^3.11"
-numpy = "^1.26.4"
-pydicom = "^2.4.4"
-rich = "^13.7.1"
-click = "^8.1.7"
-setuptools = "^70.0.0"
-vtk = "^9.3.1"
-streamlit = "^1.39.0"
-
-[tool.poetry.scripts]
-hemoflow = 'hemoflow.cli:cli'
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+[dependency-groups]
+dev = [
+    "mkdocs>=1.6.1",
+    "mkdocs-material>=9.5.49",
+]
