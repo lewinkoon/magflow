@@ -1,5 +1,5 @@
-site_name: Hemoflow
-site_url: https://github.com.lewinkoon.io/hemoflow
+site_name: magflow
+site_url: https://github.com.lewinkoon.io/magflow
 site_author: Lewin
 
 # Navigation structure
@@ -35,7 +35,7 @@ theme:
         name: Switch to system preference
 
 # Repository configuration
-repo_url: https://github.com/lewinkoon/hemoflow
+repo_url: https://github.com/lewinkoon/magflow
 repo_name: GitHub
 
 # Output directory

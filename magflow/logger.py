@@ -1,6 +1,7 @@
 import logging
 from rich.logging import RichHandler
 
+
 logger = logging.getLogger(__name__)
 
 # handler = logging.StreamHandler()

@@ -8,12 +8,12 @@ import click
 import numpy as np
 import pydicom as pd
 
-import hemoflow.helpers as hf
-from hemoflow.logger import logger
+import magflow.helpers as hf
+from magflow.logger import logger
 
 
 @click.group(
-    epilog="Check out readme at https://github.com/lewinkoon/hemoflow for more details."
+    epilog="Check out readme at https://github.com/lewinkoon/magflow for more details."
 )
 def cli():
     """

@@ -145,7 +145,7 @@ def build(_f1, _f2, _f3, timeframes):
     return data, zbuffer
 
 
-st.title("Hemoflow 🩸")
+st.title("Magflow 🩸")
 st.markdown(
     """
     Visualize velocity image series from a phase contrast magnetic resonance imaging study as a three-dimensional vector field.

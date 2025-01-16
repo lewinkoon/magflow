@@ -4,7 +4,7 @@ import os
 from pydicom import dcmread
 from pydicom.pixel_data_handlers.util import apply_modality_lut
 import vtk
-from hemoflow.logger import logger
+from magflow.logger import logger
 
 
 def parse(axis):
@@ -129,7 +129,7 @@ def showtag(dataset, group, element):
         tag_name = dataset[group, element].name
         tag_value = dataset[group, element].value
         logger.info(f"{tag_name}: {tag_value}")
-    except:
+    except KeyError:
         logger.error(f"[{group:04x},{element:04x}]: Not found.")
 
 

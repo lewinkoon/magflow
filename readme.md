@@ -1,6 +1,6 @@
-# 🩸Hemoflow
+# 🩸Magflow
 
-![GitHub repo size](https://img.shields.io/github/repo-size/lewinkoon/hemoflow)
+![GitHub repo size](https://img.shields.io/github/repo-size/lewinkoon/magflow)
 
 > Visualize **velocity** image series from a phase contrast **magnetic resonance** imaging study as a three-dimensional vector field.
 
@@ -12,13 +12,13 @@
 Clone the repository
 
 ```shell
-git clone https://github.com/lewinkoon/hemoflow
+git clone https://github.com/lewinkoon/magflow
 ```
 
 Move into the project directory
 
 ```shell
-cd hemoflow
+cd magflow
 ```
 
 > [!NOTE]
@@ -46,14 +46,14 @@ poetry install
 Load the required dicom files.
 
 ```shell
-hemoflow load PATH
+magflow load PATH
 ```
 
 > [!IMPORTANT]
 > To load multiframe `dicom` files use the option `--multiframe`
 > 
 > ```shell
-> hemoflow load --multiframe PATH
+> magflow load --multiframe PATH
 > ```
 
 In total, three series of images should be loaded and they should correspond with each one of the CT axis directions.
@@ -86,14 +86,14 @@ files/
 Finally, build volumetric the velocity field from dicom files.
 
 ```shell
-hemoflow build
+magflow build
 ```
 
 > [!TIP]
 > Use the option `--parallel` to to make it faster.
 >
 > ```shell
-> hemoflow build --parallel
+> magflow build --parallel
 > ```
 
 Data files in `vtk` format will be created for each timestep in `output/` folder.
@@ -110,7 +110,7 @@ output/
 > It is possible to output the data in `.csv` format instead of `.vts`.
 >
 > ```shell
-> hemoflow build --raw
+> magflow build --raw
 > ```
 
 Each dataframe will have cordinates and velocity components for each axis.
