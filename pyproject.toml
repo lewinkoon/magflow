@@ -10,7 +10,7 @@ dependencies = ["pydicom", "streamlit", "typer", "vtk"]
 magflow = "magflow.cli:app"
 
 [dependency-groups]
-dev = ["mkdocs>=1.6.1", "mkdocs-material>=9.5.49"]
+dev = ["mkdocs", "mkdocs-material"]
 
 [build-system]
 requires = ["hatchling"]

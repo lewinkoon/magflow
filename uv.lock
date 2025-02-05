@@ -355,8 +355,8 @@ requires-dist = [
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "mkdocs", specifier = ">=1.6.1" },
-    { name = "mkdocs-material", specifier = ">=9.5.49" },
+    { name = "mkdocs" },
+    { name = "mkdocs-material" },
 ]
 
 [[package]]
