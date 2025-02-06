@@ -6,6 +6,7 @@ from typing_extensions import Annotated
 
 import magflow.utils as hf
 from magflow.logger import logger
+from rich.progress import Progress
 
 app = typer.Typer()
 
@@ -46,18 +47,28 @@ def build(
         # map each timeframe to a different process
         worker = partial(hf.wrapper, raw, fh, rl, ap, voxel)
         with multiprocessing.Pool() as pool:
-            pool.map(worker, timeframes)
+            with Progress() as progress:  # added progress bar for parallel mode
+                task = progress.add_task("Processing", total=len(timeframes))
+                for _ in pool.imap_unordered(worker, timeframes):
+                    progress.update(task, advance=1)
         logger.info("Script finished successfully.")
     else:
-        for time in timeframes:
-            # filter data for a single timeframe
-            fh_filtered = hf.filter(fh, time)
-            rl_filtered = hf.filter(rl, time)
-            ap_filtered = hf.filter(ap, time)
+        with Progress() as progress:  # added progress bar for non-parallel mode
+            task = progress.add_task("Exporting data...", total=len(timeframes))
+            for trigger_time in timeframes:
+                # filter data for a single timeframe
+                fh_filtered = hf.filter(fh, trigger_time)
+                rl_filtered = hf.filter(rl, trigger_time)
+                ap_filtered = hf.filter(ap, trigger_time)
 
-            data = hf.tabulate(fh_filtered, rl_filtered, ap_filtered, voxel, time)
-            if raw:
-                hf.tocsv(data, time)
-            else:
-                hf.tovtk(data, time)
-            logger.info(f"Trigger time {time} exported with {len(data)} rows.")
+                data = hf.tabulate(
+                    fh_filtered, rl_filtered, ap_filtered, voxel, trigger_time
+                )
+                if raw:
+                    hf.tocsv(data, trigger_time)
+                else:
+                    hf.tovtk(data, trigger_time)
+                logger.info(
+                    f"Trigger time {trigger_time} exported with {len(data)} rows."
+                )
+                progress.update(task, advance=1)

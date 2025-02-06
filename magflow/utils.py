@@ -9,41 +9,50 @@ from magflow.logger import logger
 
 def parse(axis):
     res = []
-    folder_path = f"files/{axis}"
-    for idx, file in enumerate(os.listdir(folder_path)):
-        file_path = os.path.join(folder_path, file)
-        slice = {}
-        with open(file_path, "rb") as file:
-            ds = dcmread(file)
+    folder_path = f".tmp/{axis}"
+    # changed: ensure folder exists
+    if not os.path.exists(folder_path):
+        logger.error(f"Folder {folder_path} does not exist.")
+        raise FileNotFoundError(f"Folder {folder_path} not found.")
+    for idx, filename in enumerate(os.listdir(folder_path)):  # changed variable name
+        file_path = os.path.join(folder_path, filename)
+        # changed: use 'slice_data' to avoid shadowing built-in 'slice'
+        slice_data = {}
+        with open(file_path, "rb") as binary_file:  # changed inner variable name
+            ds = dcmread(binary_file)
 
             # assign image array
             if ds[0x0028, 0x0004].value == "MONOCHROME2":
                 img = ds.pixel_array
             else:
                 img = np.mean(ds.pixel_array, axis=2)
-            slice["pxl"] = img
-            slice["val"] = apply_modality_lut(img, ds)
+            slice_data["pxl"] = img
+            slice_data["val"] = apply_modality_lut(img, ds)
 
             # assign tags
-            slice["axis"] = ds[0x0008, 0x103E].value  # axis name
-            slice["num"] = ds[0x0020, 0x0013].value  # instance number
-            slice["spacing"] = ds[0x0028, 0x0030].value  # pixel spacing
-            slice["height"] = ds[0x0018, 0x0088].value  # spacing between slices
-            slice["time"] = int(ds[0x0020, 0x9153].value)  # trigger time
-            # slice["time"] = int(ds[0x0018, 0x1060].value)  # trigger time
+            slice_data["axis"] = ds[0x0008, 0x103E].value  # axis name
+            slice_data["num"] = ds[0x0020, 0x0013].value  # instance number
+            slice_data["spacing"] = ds[0x0028, 0x0030].value  # pixel spacing
+            slice_data["height"] = ds[0x0018, 0x0088].value  # spacing between slices
+            slice_data["time"] = int(ds[0x0020, 0x9153].value)  # trigger time
 
-            res.append(slice)
+            res.append(slice_data)
     return res
 
 
 def filter(series, frame):
     # filter images by axis and time
-    res = [slice["val"] for slice in series if slice["time"] == frame]
+    res = [
+        item["val"] for item in series if item["time"] == frame
+    ]  # changed variable name
     return res
 
 
 def tabulate(fh, rl, ap, voxel, time):
     # convert data into tabular dictionary
+    if not fh:  # added guard to prevent IndexError
+        logger.error("No image data available for tabulation.")
+        return []
     dimensions = fh[0].shape
     res = []
     for z, (imgx, imgy, imgz) in enumerate(zip(ap, fh, rl)):
