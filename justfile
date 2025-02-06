@@ -1,7 +1,7 @@
 set windows-shell := ["powershell.exe", "-c"]
 
-run command:
-    uv run magflow {{command}}
+run +COMMAND:
+    uv run magflow {{COMMAND}}
 
 ui:
     uv run streamlit run magflow/run.py
