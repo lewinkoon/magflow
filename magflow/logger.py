@@ -7,7 +7,7 @@ logger = logging.getLogger(__name__)
 # handler = logging.StreamHandler()
 handler = RichHandler()
 
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.WARNING)
 
 fmt = "%(message)s"
 formatter = logging.Formatter(fmt, datefmt="%H:%M:%S")
