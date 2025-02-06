@@ -1,8 +1,8 @@
+.tmp/
 .venv/
 .vscode/
 dist/
 docs/book
-files/
 output/
 assets/
 __pycache__/

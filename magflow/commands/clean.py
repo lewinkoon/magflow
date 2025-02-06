@@ -15,7 +15,7 @@ def clean(
     """
     Remove exported data.
     """
-    paths = ["output", "files"] if clean_all else ["output"]
+    paths = ["output", ".tmp"] if clean_all else ["output"]
 
     for path in paths:
         if not os.path.exists(path):
