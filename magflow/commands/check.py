@@ -1,4 +1,3 @@
-import os
 import random
 from pathlib import Path
 
@@ -17,7 +16,7 @@ def check(input_path: Annotated[Path, typer.Argument(help="Path to DICOM file.")
     """
     Check dicom file metadata.
     """
-    if os.path.isfile(input_path):
+    if input_path.is_file():
         with open(input_path, "rb") as f:
             ds = pd.dcmread(f)
 
@@ -30,16 +29,12 @@ def check(input_path: Annotated[Path, typer.Argument(help="Path to DICOM file.")
             hf.showtag(ds, 0x0018, 0x0088)  # spacing between slices
             hf.showtag(ds, 0x0020, 0x1041)  # slice location
             hf.showtag(ds, 0x0018, 0x1060)  # trigger time
-    elif os.path.isdir(input_path):
-        files = [
-            f
-            for f in os.listdir(input_path)
-            if os.path.isfile(os.path.join(input_path, f))
-        ]
+    elif input_path.is_dir():
+        files = [f for f in input_path.iterdir() if f.is_file()]
         if not files:
             logger.info("The directory contains no files.")
         else:
-            random_file = os.path.join(input_path, random.choice(files))
+            random_file = random.choice(files)
             with open(random_file, "rb") as f:
                 ds = pd.dcmread(f)
 
