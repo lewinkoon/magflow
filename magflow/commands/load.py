@@ -1,6 +1,4 @@
-import os
 import shutil
-from enum import Enum
 from pathlib import Path
 
 import pydicom as pd
@@ -12,37 +10,68 @@ from magflow.logger import logger
 app = typer.Typer()
 
 
-class Axis(str, Enum):
-    fh = "fh"
-    rl = "rl"
-    ap = "ap"
-
-
+# TODO: Add progress bar.
 @app.command("load")
 def load(
     pathname: Annotated[Path, typer.Argument()],
-    axis: Annotated[Axis, typer.Option(case_sensitive=False, help="Flow axis.")],
-    multiframe: Annotated[bool, typer.Option(help="Fix multiframe dicom files.")],
+    output_dir: Annotated[Path, typer.Option(help="Output directory.")] = Path("files"),
+    multiframe: Annotated[
+        bool, typer.Option(help="Fix multiframe dicom files.")
+    ] = True,
 ):
     """
-    Load dicom image series.
+    Load dicom image series from a directory.
     """
-    dst_dir = f"files/{axis.value}"
-    if not os.path.exists(dst_dir):
-        os.makedirs(dst_dir)
+    for filename in pathname.iterdir():
+        if not filename.is_file():
+            continue
 
-    if multiframe:
-        with open(pathname, "rb") as f:
-            ds = pd.dcmread(f)
+        # Guess the axis based on filename.
+        axis_value = None
+        for candidate in ["fh", "ap", "rl"]:
+            if candidate in filename.name.lower():
+                axis_value = candidate
+                break
+        if axis_value is None:
+            logger.warning(f"Axis not determined for file {filename}. Skipping.")
+            continue
+
+        dst_dir = output_dir / axis_value
+        dst_dir.mkdir(parents=True, exist_ok=True)
+
+        if multiframe:
+            try:
+                ds = pd.dcmread(filename)  # use dcmread with Path directly
+            except pd.errors.InvalidDicomError:
+                logger.warning(f"{filename} is not a valid DICOM file.")
+                continue
+
+            if not hasattr(ds, "NumberOfFrames") or not hasattr(
+                ds, "PerFrameFunctionalGroupsSequence"
+            ):
+                logger.warning(f"{filename} missing necessary DICOM attributes.")
+                continue
+
             n = int(ds.NumberOfFrames)
-            logger.info(f"Detected {n} frames.")
+            logger.info(f"Detected {n} frames in file {filename}.")
 
-            img = ds.pixel_array.squeeze()
+            try:
+                img = ds.pixel_array.squeeze()
+            except Exception as e:
+                logger.warning(f"Error accessing pixel data in {filename}: {e}")
+                continue
 
             essentials = [0x0008, 0x0010, 0x0018, 0x0020, 0x0028]
 
             for idx in range(n):
-                target = os.path.join(f"files/{axis.value}", f"img{idx:04}.dcm")
+                # Ensure PerFrameFunctionalGroupsSequence has the required index.
+                try:
+                    pffgs = ds.PerFrameFunctionalGroupsSequence[idx]
+                except IndexError:
+                    logger.warning(f"Frame {idx} missing in {filename}.")
+                    continue
+
+                target = dst_dir / f"img{idx:04}.dcm"
 
                 file_meta = pd.dataset.FileMetaDataset()
                 file_meta.MediaStorageSOPClassUID = pd.uid.MRImageStorage
@@ -62,42 +91,34 @@ def load(
                     for key, value in ds.group_dataset(group).items():
                         tmp_ds[key] = value
 
-                # sfgs = ds.SharedFunctionalGroupsSequence[0]
-                pffgs = ds.PerFrameFunctionalGroupsSequence[idx]
-
-                # copy velocity tags
                 for tag_name in ["RescaleIntercept", "RescaleSlope", "RescaleType"]:
-                    if tag_name in pffgs[(0x0028, 0x9145)][0]:
+                    if tag_name in pffgs.get((0x0028, 0x9145), [{}])[0]:
                         value = pffgs[(0x0028, 0x9145)][0][tag_name].value
                         setattr(tmp_ds, tag_name, value)
 
-                # copy velocity tags
                 for tag_name in [
                     "SpacingBetweenSlices",
                     "PixelSpacing",
                     "SliceThickness",
                 ]:
-                    if tag_name in pffgs[(0x0028, 0x9110)][0]:
+                    if tag_name in pffgs.get((0x0028, 0x9110), [{}])[0]:
                         value = pffgs[(0x0028, 0x9110)][0][tag_name].value
                         setattr(tmp_ds, tag_name, value)
 
-                # copy trigger time
                 for tag_name in ["NominalCardiacTriggerDelayTime"]:
-                    if tag_name in pffgs[(0x0018, 0x9118)][0]:
+                    if tag_name in pffgs.get((0x0018, 0x9118), [{}])[0]:
                         value = pffgs[(0x0018, 0x9118)][0][tag_name].value
                         setattr(tmp_ds, tag_name, value)
 
-                del tmp_ds.NumberOfFrames
+                if hasattr(tmp_ds, "NumberOfFrames"):
+                    del tmp_ds.NumberOfFrames
                 tmp_ds.InstanceNumber = idx + 1
                 tmp_ds.PixelData = img[idx, :].squeeze().tobytes()
                 tmp_ds.save_as(target, write_like_original=False)
 
-                logger.info(f"Image exported as {target}")
-    else:
-        for idx, filename in enumerate(os.listdir(pathname)):
-            src_file = os.path.join(pathname, filename)
-            dst_file = os.path.join(dst_dir, f"img{idx:04}.dcm")
-
-            if os.path.isfile(src_file):
-                shutil.copy(src_file, dst_file)
-                logger.info(f"Copied {src_file} to {dst_file}.")
+                logger.info(f"Image from {filename} exported as {target}")
+        else:
+            # For non-multiframe files, simply copy the file.
+            target = dst_dir / filename.name
+            shutil.copy(filename, target)
+            logger.info(f"Copied {filename} to {target}")
