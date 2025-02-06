@@ -29,7 +29,7 @@ def load(
         TextColumn("[progress.description]{task.description}"),
     ) as progress:
         for filename in files:  # replaced track loop
-            if not filename.is_file():
+            if not filename.is_file() or filename.suffix.lower() != ".dcm":
                 continue
 
             # Guess the axis based on filename.
