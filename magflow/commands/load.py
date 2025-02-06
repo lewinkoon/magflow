@@ -27,7 +27,7 @@ def load(
     """
     Load dicom image series.
     """
-    dst_dir = f"files/{axis}"
+    dst_dir = f"files/{axis.value}"
     if not os.path.exists(dst_dir):
         os.makedirs(dst_dir)
 
@@ -42,7 +42,7 @@ def load(
             essentials = [0x0008, 0x0010, 0x0018, 0x0020, 0x0028]
 
             for idx in range(n):
-                target = os.path.join(f"files/{axis}", f"img{idx:04}.dcm")
+                target = os.path.join(f"files/{axis.value}", f"img{idx:04}.dcm")
 
                 file_meta = pd.dataset.FileMetaDataset()
                 file_meta.MediaStorageSOPClassUID = pd.uid.MRImageStorage
