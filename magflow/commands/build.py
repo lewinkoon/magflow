@@ -57,9 +57,9 @@ def build(
             task = progress.add_task("Exporting data...", total=len(timeframes))
             for trigger_time in timeframes:
                 # filter data for a single timeframe
-                fh_filtered = hf.filter(fh, trigger_time)
-                rl_filtered = hf.filter(rl, trigger_time)
-                ap_filtered = hf.filter(ap, trigger_time)
+                fh_filtered = hf.filter_by_time(fh, trigger_time)
+                rl_filtered = hf.filter_by_time(rl, trigger_time)
+                ap_filtered = hf.filter_by_time(ap, trigger_time)
 
                 data = hf.tabulate(
                     fh_filtered, rl_filtered, ap_filtered, voxel, trigger_time

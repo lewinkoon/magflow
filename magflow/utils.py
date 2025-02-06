@@ -40,8 +40,8 @@ def parse(axis):
     return res
 
 
-def filter(series, frame):
-    # filter images by axis and time
+# Renamed to avoid shadowing the built-in "filter"
+def filter_by_time(series, frame):
     res = [
         item["val"] for item in series if item["time"] == frame
     ]  # changed variable name
@@ -71,18 +71,22 @@ def tabulate(fh, rl, ap, voxel, time):
     return res
 
 
+# Revised mask: do not reset input lists, instead create new masked lists.
 def mask(fh, rl, ap, mk):
-    fh, rl, ap = [], [], []
-    for imgx, imgy, imgz, imgm in zip(ap, fh, rl, mk):
-        imgx[imgm == 0] = 0
-        imgy[imgm == 0] = 0
-        imgz[imgm == 0] = 0
+    masked_fh, masked_rl, masked_ap = [], [], []
+    for imgx, imgy, imgz, imgm in zip(fh, rl, ap, mk):
+        # apply mask in-place on copies if needed
+        imgx_masked = imgx.copy()
+        imgy_masked = imgy.copy()
+        imgz_masked = imgz.copy()
+        imgx_masked[imgm == 0] = 0
+        imgy_masked[imgm == 0] = 0
+        imgz_masked[imgm == 0] = 0
 
-        fh.append(imgy)
-        rl.append(imgz)
-        ap.append(imgx)
-
-    return fh, rl, ap
+        masked_fh.append(imgy_masked)
+        masked_rl.append(imgz_masked)
+        masked_ap.append(imgx_masked)
+    return masked_fh, masked_rl, masked_ap
 
 
 def tocsv(data, time):
@@ -143,9 +147,9 @@ def showtag(dataset, group, element):
 
 
 def wrapper(raw, fh, rl, ap, voxel, time):
-    fh_filtered = filter(fh, time)
-    rl_filtered = filter(rl, time)
-    ap_filtered = filter(ap, time)
+    fh_filtered = filter_by_time(fh, time)
+    rl_filtered = filter_by_time(rl, time)
+    ap_filtered = filter_by_time(ap, time)
 
     data = tabulate(fh_filtered, rl_filtered, ap_filtered, voxel, time)
     if raw:
