@@ -1,18 +1,25 @@
-site_name: magflow
+site_name: Magflow
 site_url: https://github.com.lewinkoon.io/magflow
 site_author: Lewin
+copyright: Copyright &copy; 2025 Lewin
 
 # Navigation structure
 nav:
-  - Introduction: index.md
+  - Home: index.md
+  - Setup: setup.md
+  - Usage: usage.md
+
 
 theme:
   name: material
   icon:
     repo: fontawesome/brands/github
   features:
-    - navigation.tabs
+    # - navigation.tabs
+    - navigation.footer
     - toc.follow
+    - content.code.copy
+    - content.code.select
   palette:
     # Palette toggle for automatic mode
     - media: "(prefers-color-scheme)"
@@ -22,7 +29,9 @@ theme:
 
     # Palette toggle for light mode
     - media: "(prefers-color-scheme: light)"
-      scheme: default 
+      scheme: default
+      primary: pink
+      accent: pink
       toggle:
         icon: material/brightness-7
         name: Switch to dark mode
@@ -30,9 +39,12 @@ theme:
     # Palette toggle for dark mode
     - media: "(prefers-color-scheme: dark)"
       scheme: slate
+      primary: black
+      accent: pink
       toggle:
         icon: material/brightness-4
         name: Switch to system preference
+
 
 # Repository configuration
 repo_url: https://github.com/lewinkoon/magflow
@@ -40,3 +52,21 @@ repo_name: GitHub
 
 # Output directory
 site_dir: site
+
+extra:
+  social:
+    - icon: fontawesome/brands/github 
+      link: https://github.com/lewinkoon
+
+markdown_extensions:
+  - md_in_html
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
