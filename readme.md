@@ -3,7 +3,7 @@
 ![GitHub repo size](https://img.shields.io/github/repo-size/lewinkoon/magflow)
 
 > [!NOTE]
-> This project provides a Python script for converting DICOM files from 4D flow magnetic resonance imaging (MRI) studies into a three-dimensional velocity field in VTK format.
+> Convert DICOM files from 4D flow magnetic resonance imaging (MRI) studies into a three-dimensional velocity field in VTK format.
 
 ## Motivation
 
