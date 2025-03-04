@@ -4,7 +4,7 @@ run +COMMAND:
     uv run magflow {{COMMAND}}
 
 ui:
-    uv run streamlit run magflow/run.py
+    uv run streamlit run magflow/ui/run.py
 
 docs:
     uv run mkdocs serve
