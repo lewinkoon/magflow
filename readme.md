@@ -5,6 +5,8 @@
 > [!NOTE]
 > Convert DICOM files from 4D flow magnetic resonance imaging (MRI) studies into a three-dimensional velocity field in VTK format.
 
+![scheme-dark](docs/assets/scheme-dark.png)
+
 ## Motivation
 
 Commercial solutions for analyzing 4D flow MRI data are often prohibitively expensive, limiting accesibility for researchers, clinicians, and engineers. This script ensures that anyone can process and analyze 4D flow studies without requiring costly propietary software.
