@@ -6,39 +6,33 @@
 
 ## Setup
 
-> [!IMPORTANT]  
-> [Poetry](https://python-poetry.org/) dependency manager is required to run this project.
-
-Clone the repository
+### 1. Clone the repository
 
 ```shell
 git clone https://github.com/lewinkoon/magflow
 ```
 
-Move into the project directory
+### 2. Set up the project directory and environment
 
 ```shell
 cd magflow
+python -m venv .venv
+# Activate virtual environment:
+# On Windows:
+.venv\Scripts\activate  
+# On Unix or MacOS:
+source .venv/bin/activate
 ```
 
-> [!NOTE]
-> If needed a custom virtual environment can be created inside project directory.
-> 
-> ```shell
-> python -m venv .venv
-> ```
-> 
-> Activate the previously created virtual environment.
-> 
-> ```shell
-> .venv\Scripts\activate # on Windows
-> source .venv/bin/activate # on Unix or MacOS
-> ```
+### 3. Install dependencies
 
-Install the required dependencies for the project
-
+- Using pip:
 ```shell
-poetry install
+pip install -r requirements.txt
+```
+- Or, if you prefer uv:
+```shell
+uv sync
 ```
 
 ## Usage
@@ -48,13 +42,6 @@ Load the required dicom files.
 ```shell
 magflow load PATH
 ```
-
-> [!IMPORTANT]
-> To load multiframe `dicom` files use the option `--multiframe`
-> 
-> ```shell
-> magflow load --multiframe PATH
-> ```
 
 In total, three series of images should be loaded and they should correspond with each one of the CT axis directions.
 
