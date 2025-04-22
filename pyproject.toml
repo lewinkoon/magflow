@@ -4,7 +4,15 @@ version = "0.1.0"
 description = "Visualize velocity image series from a phase contrast magnetic resonance imaging study as three-dimensional vector field."
 readme = "readme.md"
 requires-python = ">=3.12"
-dependencies = ["pydicom", "streamlit", "typer", "vtk"]
+dependencies = [
+    "streamlit",
+    "meshio",
+    "pandas",
+    "pydicom",
+    "pyvista[jupyter]",
+    "typer",
+    "vtk",
+]
 
 [project.scripts]
 magflow = "magflow.cli:app"
