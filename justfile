@@ -8,3 +8,7 @@ ui:
 
 docs:
     uv run mkdocs serve
+
+update:
+    uv lock --upgrade
+    uv sync
