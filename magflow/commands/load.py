@@ -4,7 +4,7 @@ from pathlib import Path
 import pydicom as pd
 import typer
 from typing_extensions import Annotated
-from rich.progress import Progress, SpinnerColumn, TextColumn  # replaced track import
+from rich.progress import Progress, SpinnerColumn, TextColumn
 
 from magflow.logger import logger
 
