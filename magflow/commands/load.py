@@ -33,7 +33,7 @@ def load(
 
         # Guess the axis based on filename (fh: foot-head, ap: anterior-posterior, rl: right-left)
         axis_value = None
-        for candidate in ["fh", "ap", "rl"]:
+        for candidate in ["fh", "ap", "rl", "m"]:
             if candidate in filename.name.lower():
                 axis_value = candidate
                 break
@@ -124,6 +124,12 @@ def load(
                     if tag_name in pffgs[(0x0018, 0x9118)][0]:
                         value = pffgs[(0x0018, 0x9118)][0][tag_name].value
                         setattr(frame, tag_name, value)
+
+            # Set image orientation to sagittal (right-left view)
+            frame.ImageOrientationPatient = [0, 1, 0, 0, 0, -1]
+
+            # Set image position to a generic value
+            frame.ImagePositionPatient = [0, 0, 0]
 
             # Remove multiframe-specific attributes
             if hasattr(frame, "NumberOfFrames"):
