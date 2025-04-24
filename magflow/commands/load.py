@@ -56,7 +56,7 @@ def load(
         # Load and extract pixel data from the DICOM file
         try:
             img = dcm.pixel_array
-            logger.info(f"DICOM pixel array dimensions: {img.shape}")
+            logger.info(f"Pixel array dimensions in {filename.name}: {img.shape}")
         except Exception as e:
             logger.warning(f"Error accessing pixel data in {filename.name}: {e}")
             continue
