@@ -180,6 +180,96 @@ def process_file(filename, output_dir, progress=None, task_id=None):
     return frames_processed
 
 
+def parse_dicom_files(input_dir=".tmp"):
+    """
+    Parse DICOM files from the nested directory structure.
+    """
+    result = {"fh": [], "rl": [], "ap": []}
+
+    # Check if input directory exists
+    if not os.path.exists(input_dir):
+        logger.error(f"Input directory {input_dir} does not exist.")
+        raise FileNotFoundError(f"Input directory {input_dir} not found.")
+
+    # Get all timestep directories
+    timestep_dirs = sorted(
+        [d for d in os.listdir(input_dir) if os.path.isdir(os.path.join(input_dir, d))]
+    )
+
+    if not timestep_dirs:
+        logger.error(f"No timestep directories found in {input_dir}")
+        raise FileNotFoundError(f"No timestep directories found in {input_dir}")
+
+    logger.info(f"Found {len(timestep_dirs)} timestep directories")
+
+    # Process each timestep directory
+    for timestep_dir in timestep_dirs:
+        timestep_path = os.path.join(input_dir, timestep_dir)
+
+        # Find axis directories in this timestep
+        for axis in ["fh", "rl", "ap"]:
+            axis_path = os.path.join(timestep_path, axis)
+
+            if not os.path.exists(axis_path):
+                logger.warning(
+                    f"Axis directory {axis_path} not found for timestep {timestep_dir}"
+                )
+                continue
+
+            # Process all DICOM files in this axis directory
+            dicom_files = [
+                f
+                for f in os.listdir(axis_path)
+                if f.lower().endswith(".dcm")
+                or os.path.isfile(os.path.join(axis_path, f))
+            ]
+
+            if not dicom_files:
+                logger.warning(f"No DICOM files found in {axis_path}")
+                continue
+
+            for filename in dicom_files:
+                file_path = os.path.join(axis_path, filename)
+                try:
+                    slice_data = {}
+                    with open(file_path, "rb") as binary_file:
+                        ds = pydicom.dcmread(binary_file)
+
+                        # assign image array
+                        if ds[0x0028, 0x0004].value == "MONOCHROME2":
+                            img = ds.pixel_array
+                        else:
+                            img = np.mean(ds.pixel_array, axis=2)
+                        slice_data["pxl"] = img
+                        slice_data["val"] = pydicom.pixels.apply_modality_lut(img, ds)
+
+                        # assign tags
+                        slice_data["axis"] = axis  # use directory name as axis
+                        slice_data["num"] = ds[0x0020, 0x0013].value  # instance number
+                        slice_data["spacing"] = ds[
+                            0x0028, 0x0030
+                        ].value  # pixel spacing
+                        slice_data["height"] = ds[
+                            0x0018, 0x0088
+                        ].value  # spacing between slices
+                        slice_data["time"] = int(
+                            ds[0x0020, 0x9153].value
+                        )  # trigger time
+                        slice_data["timestep_dir"] = (
+                            timestep_dir  # store the timestep directory name
+                        )
+
+                        result[axis].append(slice_data)
+                except Exception as e:
+                    logger.error(f"Error processing {file_path}: {e}")
+
+    # Log the results
+    for axis, data in result.items():
+        logger.info(f"{axis.upper()} series: {len(data)} images found")
+
+    return result
+
+
 def showtag(dataset, group, element):
     try:
         tag_name = dataset[group, element].name
