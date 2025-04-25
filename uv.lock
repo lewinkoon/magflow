@@ -2185,11 +2185,23 @@ wheels = [
 
 [[package]]
 name = "trame-client"
-version = "3.7.1"
+version = "3.8.0"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/27/0a/59efcedcd6863490f2f9bf6841b0f06d646e3cc12c34ee6da4d9c93b36ea/trame_client-3.7.1.tar.gz", hash = "sha256:bfc8a8ea11922181c845296fa5f5704724d01af30cf824168f1fd54a01eb1707", size = 237293, upload_time = "2025-04-10T03:56:18.428Z" }
+dependencies = [
+    { name = "trame-common" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/11/da/09cc101c4d597e4aba770509025c757903112e7e21de3ed793aab53bc5ce/trame_client-3.8.0.tar.gz", hash = "sha256:84bc3cf6eaeb670a9daeb0bb7a5424f32539cc6e5c815b2245b71d39d484bed2", size = 237149, upload_time = "2025-04-24T18:51:30.323Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/b1/fb/b876d1c5bc70c8e905e85c1959c36ed2b57e583248af026dd14229994c53/trame_client-3.7.1-py3-none-any.whl", hash = "sha256:fde5eb6f1caa262450efbd0bcdaa672aae33ae29962e689ca823c0cb3a80d920", size = 241771, upload_time = "2025-04-10T03:56:16.537Z" },
+    { url = "https://files.pythonhosted.org/packages/f0/27/0f7c646bc223ebbffcdb25ac00c41eec5da1f5fde966024bbd629ab2b009/trame_client-3.8.0-py3-none-any.whl", hash = "sha256:6fb377bdbc847ad33bf1ed7fef8ffd8736799d27004dfd7ecb579b8b00c8d172", size = 241645, upload_time = "2025-04-24T18:51:28.515Z" },
+]
+
+[[package]]
+name = "trame-common"
+version = "0.2.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/03/03/8098f7b96692a516c427d30c73fd0055f3ece7e9207b2101b8ff0b8ba46f/trame_common-0.2.0.tar.gz", hash = "sha256:5494e644fe38e14dea7ab60aa3c5bd8feccb3c8e09adac4533115557f2605ab0", size = 18312, upload_time = "2025-03-31T22:41:05.443Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/2f/28/b7f623ee4c2704f02c13204f987218325cd30eb5e27e2572e728478ceccb/trame_common-0.2.0-py3-none-any.whl", hash = "sha256:da334bd05d9e4dc5055ae762e385b7dc9c8cdcae1a185da933e8bed0bf93b005", size = 21612, upload_time = "2025-03-31T22:41:03.633Z" },
 ]
 
 [[package]]
