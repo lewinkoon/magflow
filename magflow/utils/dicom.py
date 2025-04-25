@@ -1,5 +1,7 @@
 import pydicom
 from magflow.utils.logger import logger
+import os
+import numpy as np
 
 
 def determine_axis(filename):
@@ -176,3 +178,12 @@ def process_file(filename, output_dir, progress=None, task_id=None):
         progress.update(task_id, advance=1)
 
     return frames_processed
+
+
+def showtag(dataset, group, element):
+    try:
+        tag_name = dataset[group, element].name
+        tag_value = dataset[group, element].value
+        logger.info(f"{tag_name}: {tag_value}")
+    except KeyError:
+        logger.error(f"[{group:04x},{element:04x}]: Not found.")

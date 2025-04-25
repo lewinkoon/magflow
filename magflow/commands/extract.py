@@ -11,7 +11,7 @@ from rich.progress import (
 )
 
 from magflow.utils.logger import logger
-from magflow.utils.loading import process_file
+from magflow.utils.dicom import process_file
 
 app = typer.Typer()
 
