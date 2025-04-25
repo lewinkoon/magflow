@@ -7,7 +7,7 @@ import pydicom as pd
 import streamlit as st
 
 # Local imports
-from magflow.utils import (
+from magflow.utils.utils import (
     create_zip_buffer,
     determine_axis,
     load_dicom_file,

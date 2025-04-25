@@ -1,7 +1,7 @@
 import os
 import shutil  # Added import for recursive deletion
 import typer
-from magflow.logger import logger
+from magflow.utils.logger import logger
 
 app = typer.Typer()
 

@@ -5,8 +5,8 @@ import pydicom as pd
 import typer
 from typing_extensions import Annotated
 
-import magflow.utils as hf
-from magflow.logger import logger
+import magflow.utils.utils as hf
+from magflow.utils.logger import logger
 
 app = typer.Typer()
 

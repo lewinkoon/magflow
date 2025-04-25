@@ -4,7 +4,7 @@ import os
 from pydicom import dcmread
 from pydicom.pixel_data_handlers.util import apply_modality_lut
 import vtk
-from magflow.logger import logger
+from magflow.utils.logger import logger
 import zipfile
 import io
 import pydicom as pd
