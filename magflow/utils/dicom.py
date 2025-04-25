@@ -1,6 +1,6 @@
 import pydicom
 from magflow.utils.logger import logger
-import os
+from pathlib import Path
 import numpy as np
 
 
@@ -180,21 +180,20 @@ def process_file(filename, output_dir, progress=None, task_id=None):
     return frames_processed
 
 
-def parse_dicom_files(input_dir=".tmp"):
+def extract_dicom_images(input_dir=".tmp"):
     """
     Parse DICOM files from the nested directory structure.
     """
     result = {"fh": [], "rl": [], "ap": []}
 
     # Check if input directory exists
-    if not os.path.exists(input_dir):
+    input_path = Path(input_dir)
+    if not input_path.exists():
         logger.error(f"Input directory {input_dir} does not exist.")
         raise FileNotFoundError(f"Input directory {input_dir} not found.")
 
     # Get all timestep directories
-    timestep_dirs = sorted(
-        [d for d in os.listdir(input_dir) if os.path.isdir(os.path.join(input_dir, d))]
-    )
+    timestep_dirs = sorted([d for d in input_path.iterdir() if d.is_dir()])
 
     if not timestep_dirs:
         logger.error(f"No timestep directories found in {input_dir}")
@@ -204,32 +203,28 @@ def parse_dicom_files(input_dir=".tmp"):
 
     # Process each timestep directory
     for timestep_dir in timestep_dirs:
-        timestep_path = os.path.join(input_dir, timestep_dir)
-
         # Find axis directories in this timestep
         for axis in ["fh", "rl", "ap"]:
-            axis_path = os.path.join(timestep_path, axis)
+            axis_path = timestep_dir / axis
 
-            if not os.path.exists(axis_path):
+            if not axis_path.exists():
                 logger.warning(
-                    f"Axis directory {axis_path} not found for timestep {timestep_dir}"
+                    f"Axis directory {axis_path} not found for timestep {timestep_dir.name}"
                 )
                 continue
 
             # Process all DICOM files in this axis directory
             dicom_files = [
                 f
-                for f in os.listdir(axis_path)
-                if f.lower().endswith(".dcm")
-                or os.path.isfile(os.path.join(axis_path, f))
+                for f in axis_path.iterdir()
+                if f.name.lower().endswith(".dcm") or f.is_file()
             ]
 
             if not dicom_files:
                 logger.warning(f"No DICOM files found in {axis_path}")
                 continue
 
-            for filename in dicom_files:
-                file_path = os.path.join(axis_path, filename)
+            for file_path in dicom_files:
                 try:
                     slice_data = {}
                     with open(file_path, "rb") as binary_file:
@@ -256,7 +251,7 @@ def parse_dicom_files(input_dir=".tmp"):
                             ds[0x0020, 0x9153].value
                         )  # trigger time
                         slice_data["timestep_dir"] = (
-                            timestep_dir  # store the timestep directory name
+                            timestep_dir.name  # store the timestep directory name
                         )
 
                         result[axis].append(slice_data)

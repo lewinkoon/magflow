@@ -1,6 +1,6 @@
-import os
-import shutil  # Added import for recursive deletion
+import shutil
 import typer
+from pathlib import Path
 from magflow.utils.logger import logger
 
 app = typer.Typer()
@@ -17,13 +17,14 @@ def clean(
     """
     paths = ["output", ".tmp"] if clean_all else ["output"]
 
-    for path in paths:
-        if not os.path.exists(path):
-            logger.info(f"{path} files not exported yet.")
+    for path_str in paths:
+        path = Path(path_str)
+        if not path.exists():
+            logger.info(f"{path_str} files not exported yet.")
             continue  # Skipping nonexistent directories
         else:
             try:
                 shutil.rmtree(path)  # Recursively delete directory and its contents
-                logger.info(f"Removed directory {path} and all its contents")
+                logger.info(f"Removed directory {path_str} and all its contents")
             except Exception as e:
-                logger.error(f"{path} could not be removed: {e}")
+                logger.error(f"{path_str} could not be removed: {e}")
