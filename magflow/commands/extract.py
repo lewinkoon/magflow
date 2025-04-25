@@ -16,8 +16,8 @@ from magflow.utils.loading import process_file
 app = typer.Typer()
 
 
-@app.command("load")
-def load(
+@app.command("extract")
+def extract(
     pathname: Annotated[Path, typer.Argument()],
     output_dir: Annotated[
         Path, typer.Option("--output-dir", "-o", help="Output directory.")
