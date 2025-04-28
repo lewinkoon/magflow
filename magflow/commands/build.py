@@ -16,7 +16,7 @@ def build(
     pathname: Annotated[Path, typer.Argument()],
     output_dir: Annotated[
         str, typer.Option(help="Output directory for generated files.")
-    ] = "output",
+    ] = "data",
     raw: Annotated[bool, typer.Option(help="Export comma delimited values.")] = False,
 ):
     """Create volumetric velocity field from dicom files."""
