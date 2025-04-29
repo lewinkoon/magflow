@@ -12,3 +12,6 @@ docs:
 update:
     uv lock --upgrade
     uv sync
+
+build:
+    uv run magflow visualize
