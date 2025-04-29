@@ -68,3 +68,19 @@ def generate_streamlines(aorta, center):
         source_radius=10,
     )
     return streamlines, source
+
+
+def calculate_velocity_statistics(aorta):
+    """Calculate and return statistics about the velocity magnitude field.
+
+    Returns:
+        dict: Dictionary containing mean and peak velocity values.
+    """
+    velocity_magnitude = aorta.point_data["VelocityMagnitude"]
+
+    # Calculate statistics
+    mean_velocity = np.mean(velocity_magnitude)
+    peak_velocity = np.max(velocity_magnitude)
+
+    # Return as dictionary for easy access
+    return {"mean": mean_velocity, "peak": peak_velocity}
