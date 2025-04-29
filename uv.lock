@@ -1236,11 +1236,11 @@ wheels = [
 
 [[package]]
 name = "narwhals"
-version = "1.36.0"
+version = "1.37.0"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/65/92/503f99e2244a271aacd6c2588e0af1b59232292b217708748cdb30214dc3/narwhals-1.36.0.tar.gz", hash = "sha256:7cd860e7e066609bd8a042bb5b8e4193275532114448210a91cbd5c622b6e5eb", size = 270385, upload_time = "2025-04-23T07:15:32.895Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/d0/b8/8adb05ab8ad7eb13069a241081fda5653de8532078b128cd58f647f690c7/narwhals-1.37.0.tar.gz", hash = "sha256:47cb7bb63afd85e72c5260a8c6281fce88b2e12fbe18eba777b980e3dccd5a45", size = 271458, upload_time = "2025-04-28T11:39:24.086Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/42/bf/fbcbd9f8676e06ed43d644a4ddbf31478a44056487578ce67f191da430cb/narwhals-1.36.0-py3-none-any.whl", hash = "sha256:e3c50dd1d769bc145f57ae17c1f0f0da6c3d397d62cdd0bb167e9b618e95c9d6", size = 331018, upload_time = "2025-04-23T07:15:30.866Z" },
+    { url = "https://files.pythonhosted.org/packages/8e/37/9f0f514d0912bc6d4b9476904b39cba1d38f5e21731552f3d52f5e594bcf/narwhals-1.37.0-py3-none-any.whl", hash = "sha256:d7df62f3bc2bf951a7ba3589cd1f6b8ed1298da281c348444d19f9c0b5a063f6", size = 331872, upload_time = "2025-04-28T11:39:22.111Z" },
 ]
 
 [[package]]
@@ -2193,14 +2193,14 @@ wheels = [
 
 [[package]]
 name = "trame-client"
-version = "3.8.0"
+version = "3.8.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "trame-common" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/11/da/09cc101c4d597e4aba770509025c757903112e7e21de3ed793aab53bc5ce/trame_client-3.8.0.tar.gz", hash = "sha256:84bc3cf6eaeb670a9daeb0bb7a5424f32539cc6e5c815b2245b71d39d484bed2", size = 237149, upload_time = "2025-04-24T18:51:30.323Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/de/4f/77b5c75499db08ff9ba4c832ec5c7557dc6d6af847931287cf00fe595f27/trame_client-3.8.1.tar.gz", hash = "sha256:53cae43165035614559e4e15805697e2c666abd6124b907ae08c6b6ea4f917d7", size = 237254, upload_time = "2025-04-28T19:43:00.607Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/f0/27/0f7c646bc223ebbffcdb25ac00c41eec5da1f5fde966024bbd629ab2b009/trame_client-3.8.0-py3-none-any.whl", hash = "sha256:6fb377bdbc847ad33bf1ed7fef8ffd8736799d27004dfd7ecb579b8b00c8d172", size = 241645, upload_time = "2025-04-24T18:51:28.515Z" },
+    { url = "https://files.pythonhosted.org/packages/e6/62/8e1da1e023767c35b6fa2e34f120b97bdf3478f2e95df4d1ab23748ce6e6/trame_client-3.8.1-py3-none-any.whl", hash = "sha256:82d5613c02b145754deddf6a0d92b6782474ac25d5e86de46e3b02dda3cfd9e2", size = 241731, upload_time = "2025-04-28T19:42:58.545Z" },
 ]
 
 [[package]]
@@ -2251,7 +2251,7 @@ wheels = [
 
 [[package]]
 name = "typer"
-version = "0.15.2"
+version = "0.15.3"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "click" },
@@ -2259,9 +2259,9 @@ dependencies = [
     { name = "shellingham" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/8b/6f/3991f0f1c7fcb2df31aef28e0594d8d54b05393a0e4e34c65e475c2a5d41/typer-0.15.2.tar.gz", hash = "sha256:ab2fab47533a813c49fe1f16b1a370fd5819099c00b119e0633df65f22144ba5", size = 100711, upload_time = "2025-02-27T19:17:34.807Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/98/1a/5f36851f439884bcfe8539f6a20ff7516e7b60f319bbaf69a90dc35cc2eb/typer-0.15.3.tar.gz", hash = "sha256:818873625d0569653438316567861899f7e9972f2e6e0c16dab608345ced713c", size = 101641, upload_time = "2025-04-28T21:40:59.204Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/7f/fc/5b29fea8cee020515ca82cc68e3b8e1e34bb19a3535ad854cac9257b414c/typer-0.15.2-py3-none-any.whl", hash = "sha256:46a499c6107d645a9c13f7ee46c5d5096cae6f5fc57dd11eccbbb9ae3e44ddfc", size = 45061, upload_time = "2025-02-27T19:17:32.111Z" },
+    { url = "https://files.pythonhosted.org/packages/48/20/9d953de6f4367163d23ec823200eb3ecb0050a2609691e512c8b95827a9b/typer-0.15.3-py3-none-any.whl", hash = "sha256:c86a65ad77ca531f03de08d1b9cb67cd09ad02ddddf4b34745b5008f43b239bd", size = 45253, upload_time = "2025-04-28T21:40:56.269Z" },
 ]
 
 [[package]]
