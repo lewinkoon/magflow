@@ -1,4 +1,3 @@
-import json
 import os
 from pathlib import Path
 
@@ -7,13 +6,12 @@ import typer
 from typing_extensions import Annotated
 
 from magflow.utils.vtk import (
-    load_biomodel,
-    extract_aorta,
-    render_volume,
-    generate_streamlines,
     calculate_velocity_statistics,
+    extract_aorta,
+    generate_streamlines,
+    load_biomodel,
+    render_volume,
 )
-
 
 app = typer.Typer()
 
@@ -111,7 +109,7 @@ def visualize(
 
     # Calculate and display velocity statistics for the current timestep
     velocity_stats = calculate_velocity_statistics(aorta)
-    typer.echo(f"Velocity Statistics:")
+    typer.echo("Velocity Statistics:")
     typer.echo(f"  Mean Velocity: {velocity_stats['mean']:.2f} cm/s")
     typer.echo(f"  Peak Velocity: {velocity_stats['peak']:.2f} cm/s")
 
