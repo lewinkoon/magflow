@@ -12,13 +12,19 @@ dependencies = [
     "pyvista[jupyter]",
     "typer",
     "vtk",
+    "matplotlib>=3.10.1",
+    "numpy>=2.2.5",
 ]
 
 [project.scripts]
 magflow = "magflow.cli:app"
 
 [dependency-groups]
-dev = ["mkdocs", "mkdocs-material"]
+dev = [
+    "ipykernel>=6.29.5",
+    "mkdocs",
+ "mkdocs-material",
+]
 
 [build-system]
 requires = ["hatchling"]
