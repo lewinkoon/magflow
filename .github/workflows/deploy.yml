@@ -1,4 +1,4 @@
-name: MkDocs
+name: Deploy documentation to GitHub Pages
 
 on:
   workflow_dispatch:
