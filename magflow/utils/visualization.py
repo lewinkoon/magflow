@@ -1,6 +1,7 @@
 import numpy as np
 import pyvista as pv
 from rich import print
+from scipy.interpolate import interp1d, splev, splprep
 
 
 def load_biomodel(biomodel_path):
@@ -10,16 +11,13 @@ def load_biomodel(biomodel_path):
     # Apply transformations
     biomodel_data.rotate_y(-90, inplace=True)
     biomodel_data.rotate_z(-90, inplace=True)
-    print("Applied rotations: Y-axis: -90°, Z-axis: -90°")
 
     biomodel_data.translate([0, 300, 0], inplace=True)
-    print("Translated model: Y-axis: +300 units")
 
     # Flip Z coordinates
     points = np.array(biomodel_data.points)
     points[:, 2] = -points[:, 2]
     biomodel_data.points = points
-    print("Mirrored biomodel in XY plane")
 
     return biomodel_data
 
@@ -39,7 +37,6 @@ def extract_aorta(dataset, biomodel_data):
 def render_volume(aorta):
     """Create a uniform grid for volume rendering."""
     bounds = aorta.bounds
-    print(f"Bounds: {bounds}")
 
     # Create a uniform grid with appropriate resolution
     uniform = pv.ImageData(
@@ -81,3 +78,81 @@ def calculate_velocity_statistics(aorta):
 
     # Return as dictionary for easy access
     return {"mean": mean_velocity, "peak": peak_velocity}
+
+
+def resample(points, num_points=20):
+    """Resample a set of 3D points to create a uniform distribution."""
+    # Calculate cumulative distance along the line
+    distances = np.zeros(len(points))
+    for i in range(1, len(points)):
+        distances[i] = distances[i - 1] + np.linalg.norm(points[i] - points[i - 1])
+
+    # Total length of the centerline
+    total_length = distances[-1]
+
+    if len(points) < 4:
+        # For very few points, use linear interpolation
+        # Normalize distances to [0, 1]
+        t = distances / total_length
+
+        # Create interpolation functions for x, y, z
+        fx = interp1d(t, points[:, 0])
+        fy = interp1d(t, points[:, 1])
+        fz = interp1d(t, points[:, 2])
+
+        # Generate equidistant parameter values
+        uniform_t = np.linspace(0, 1, num_points)
+
+        # Interpolate new points
+        new_points = np.vstack((fx(uniform_t), fy(uniform_t), fz(uniform_t))).T
+    else:
+        # For more points, use spline interpolation for smoother results
+        # Fit a spline to the points
+        tck, u = splprep([points[:, 0], points[:, 1], points[:, 2]], s=0)
+
+        # Generate equidistant parameter values
+        uniform_u = np.linspace(0, 1, num_points)
+
+        # Evaluate the spline at these parameter values
+        x_new, y_new, z_new = splev(uniform_u, tck)
+        new_points = np.column_stack((x_new, y_new, z_new))
+
+    return new_points
+
+
+def ortoplanes(points, dataset, radius=30):
+    # Initialize storage for cross-sections
+    cross_sections = []
+
+    # Calculate tangent vectors at each point
+    tangents = np.zeros_like(points)
+
+    # For the first point
+    tangents[0] = points[1] - points[0]
+    tangents[0] = tangents[0] / np.linalg.norm(tangents[0])
+
+    # For the last point
+    tangents[-1] = points[-1] - points[-2]
+    tangents[-1] = tangents[-1] / np.linalg.norm(tangents[-1])
+
+    # For interior points, use central difference
+    for i in range(1, len(points) - 1):
+        tangents[i] = points[i + 1] - points[i - 1]
+        tangents[i] = tangents[i] / np.linalg.norm(tangents[i])
+
+    # Create orthogonal planes and slice dataset
+    for i, point in enumerate(points):
+        # The normal to the plane is the tangent at this point
+        normal = tangents[i]
+
+        # Slice the dataset with a plane at this point and normal
+        full_slice = dataset.slice(normal=normal, origin=point)
+
+        # Create a sphere to limit the extent of the slice
+        sphere = pv.Sphere(radius=radius, center=point)
+
+        # Use boolean intersection to limit the slice to the sphere's radius
+        cross_section = full_slice.clip_surface(sphere)
+        cross_sections.append(cross_section)
+
+    return cross_sections
