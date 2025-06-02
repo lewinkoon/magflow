@@ -12,10 +12,11 @@ dependencies = [
     "pyvista[jupyter]",
     "typer",
     "vtk",
-    "matplotlib>=3.10.1",
-    "numpy>=2.2.5",
-    "tqdm>=4.67.1",
-    "scipy>=1.15.2",
+    "matplotlib",
+    "numpy",
+    "tqdm",
+    "scipy",
+    "ipykernel",
 ]
 
 [project.scripts]
