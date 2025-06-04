@@ -1,12 +1,13 @@
-import typer
-from typing_extensions import Annotated
-from pathlib import Path
-from rich.progress import Progress
 import tempfile
+from pathlib import Path
+from typing import Annotated
 
-from magflow.utils.logger import logger
+import typer
+from rich.progress import Progress
+
+from magflow.utils.data import tabulate, tocsv, tovtk
 from magflow.utils.dicom import extract_dicom_images, process_file
-from magflow.utils.data import tabulate, tovtk, tocsv
+from magflow.utils.logger import logger
 
 app = typer.Typer()
 

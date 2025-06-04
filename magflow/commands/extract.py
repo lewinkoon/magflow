@@ -1,17 +1,17 @@
 from pathlib import Path
+from typing import Annotated
 
 import typer
-from typing_extensions import Annotated
 from rich.progress import (
+    BarColumn,
     Progress,
     SpinnerColumn,
-    TextColumn,
-    BarColumn,
     TaskProgressColumn,
+    TextColumn,
 )
 
-from magflow.utils.logger import logger
 from magflow.utils.dicom import process_file
+from magflow.utils.logger import logger
 
 app = typer.Typer()
 

@@ -1,9 +1,9 @@
 import random
 from pathlib import Path
+from typing import Annotated
 
 import pydicom as pd
 import typer
-from typing_extensions import Annotated
 
 import magflow.utils.data as hf
 from magflow.utils.logger import logger

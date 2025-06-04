@@ -1,6 +1,8 @@
 import shutil
-import typer
 from pathlib import Path
+
+import typer
+
 from magflow.utils.logger import logger
 
 app = typer.Typer()
