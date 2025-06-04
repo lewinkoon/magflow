@@ -24,9 +24,7 @@ magflow = "magflow.cli:app"
 
 [dependency-groups]
 dev = [
-    "ipykernel>=6.29.5",
-    "mkdocs",
- "mkdocs-material",
+    "ipykernel"
 ]
 
 [build-system]
