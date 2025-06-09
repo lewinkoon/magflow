@@ -26,7 +26,8 @@ magflow = "magflow.cli:app"
 
 [dependency-groups]
 dev = [
-    "ipykernel"
+    "ipykernel",
+    "vulture>=2.14",
 ]
 
 [build-system]
