@@ -1,3 +1,5 @@
+import math
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pyvista as pv
@@ -363,3 +365,35 @@ def create_energy_loss_plots(
 
     plt.tight_layout()
     return fig, corr_coef
+
+
+def calculate_subplot_grid(n_items, max_cols=5):
+    """
+    Calculate optimal grid dimensions for subplot arrangement.
+
+    Args:
+        n_items (int): Number of items to display
+        max_cols (int): Maximum number of columns (default: 5)
+
+    Returns:
+        tuple: (n_rows, n_cols) for subplot grid
+    """
+    if n_items == 0:
+        return 0, 0
+    elif n_items == 1:
+        return 1, 1
+    elif n_items <= 4:
+        return 2, 2
+    elif n_items <= 6:
+        return 2, 3
+    elif n_items <= 9:
+        return 3, 3
+    elif n_items <= 12:
+        return 3, 4
+    elif n_items <= 16:
+        return 4, 4
+    else:
+        # For more than 16 items, use max_cols and calculate rows
+        n_cols = min(max_cols, n_items)
+        n_rows = math.ceil(n_items / n_cols)
+        return n_rows, n_cols

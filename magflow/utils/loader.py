@@ -1,4 +1,5 @@
 import json
+import pickle
 from pathlib import Path
 
 import numpy as np
@@ -255,3 +256,31 @@ def validate_patient(patient_data: dict, patient_id: str) -> dict[str, bool]:
     }
 
     return validation
+
+
+def load_metric_cache(
+    patient_id: str, metric_name: str, cache_dir: Path = Path("cache")
+) -> dict | None:
+    """Load cached metric for a patient."""
+    cache_file = cache_dir / f"{patient_id}_{metric_name}.pkl"
+    if cache_file.exists():
+        try:
+            with cache_file.open("rb") as f:
+                return pickle.load(f)
+        except Exception as e:
+            print(f"Warning: Failed to load {metric_name} cache for {patient_id}: {e}")
+    return None
+
+
+def save_metric_cache(
+    patient_id: str, metric_name: str, data, cache_dir: Path = Path("cache")
+):
+    """Save computed metric to cache."""
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    cache_file = cache_dir / f"{patient_id}_{metric_name}.pkl"
+
+    try:
+        with cache_file.open("wb") as f:
+            pickle.dump(data, f)
+    except Exception as e:
+        print(f"Warning: Failed to cache {metric_name} for {patient_id}: {e}")
