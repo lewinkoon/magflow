@@ -17,6 +17,8 @@ dependencies = [
     "tqdm",
     "scipy",
     "ipykernel",
+    "seaborn>=0.13.2",
+    "qgrid>=1.3.1",
 ]
 
 [project.scripts]
