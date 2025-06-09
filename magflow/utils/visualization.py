@@ -1,116 +1,7 @@
-import json
-
 import matplotlib.pyplot as plt
 import numpy as np
 import pyvista as pv
 from rich import print
-from scipy.interpolate import interp1d, splev, splprep
-from scipy.spatial import KDTree
-
-
-def load_centreline(centreline_path):
-    """Load and validate centreline data from JSON file."""
-    try:
-        with centreline_path.open() as f:
-            data = json.load(f)
-    except FileNotFoundError as err:
-        raise FileNotFoundError(
-            f"Centreline file not found at {centreline_path}"
-        ) from err
-    except json.JSONDecodeError as e:
-        raise ValueError(f"Invalid JSON format in centreline file: {e}") from e
-
-    # Validate JSON structure
-    if "markups" not in data or len(data["markups"]) == 0:
-        raise ValueError("Invalid centreline data: missing 'markups' array")
-
-    if "controlPoints" not in data["markups"][0]:
-        raise ValueError(
-            "Invalid centreline data: missing 'controlPoints' in first markup"
-        )
-
-    return data
-
-
-def extract_positions(control_points):
-    """Extract valid 3D positions from control points."""
-    positions = []
-
-    for i, point in enumerate(control_points):
-        if "position" not in point:
-            print(f"Warning: Skipping control point {i} - missing 'position' field")
-            continue
-
-        if len(point["position"]) != 3:
-            print(f"Warning: Skipping control point {i} - invalid position format")
-            continue
-
-        positions.append(point["position"])
-
-    if len(positions) < 2:
-        raise ValueError(
-            f"Insufficient valid control points: {len(positions)} (minimum 2 required)"
-        )
-
-    return positions
-
-
-def apply_transformations(points, z_translation=300):
-    """Apply translation and rotation transformations to points."""
-    # Define transformation parameters
-    rotation_matrix = np.array([[0, 1, 0], [0, 0, 1], [-1, 0, 0]], dtype=np.float64)
-
-    # Apply transformations
-    points[:, 2] += z_translation
-    return points @ rotation_matrix.T
-
-
-def create_polydata(centreline_points):
-    """Create PyVista PolyData object from centreline points."""
-    centreline_data = pv.PolyData(centreline_points)
-    lines_array = np.hstack([len(centreline_points), np.arange(len(centreline_points))])
-    centreline_data.lines = lines_array
-    return centreline_data
-
-
-def resample(points, num_points=20):
-    """Resample a set of 3D points to create a uniform distribution."""
-    # Calculate cumulative distance along the line
-    distances = np.zeros(len(points))
-    for i in range(1, len(points)):
-        distances[i] = distances[i - 1] + np.linalg.norm(points[i] - points[i - 1])
-
-    # Total length of the centerline
-    total_length = distances[-1]
-
-    if len(points) < 4:
-        # For very few points, use linear interpolation
-        # Normalize distances to [0, 1]
-        t = distances / total_length
-
-        # Create interpolation functions for x, y, z
-        fx = interp1d(t, points[:, 0])
-        fy = interp1d(t, points[:, 1])
-        fz = interp1d(t, points[:, 2])
-
-        # Generate equidistant parameter values
-        uniform_t = np.linspace(0, 1, num_points)
-
-        # Interpolate new points
-        new_points = np.vstack((fx(uniform_t), fy(uniform_t), fz(uniform_t))).T
-    else:
-        # For more points, use spline interpolation for smoother results
-        # Fit a spline to the points
-        tck, u = splprep([points[:, 0], points[:, 1], points[:, 2]], s=0)
-
-        # Generate equidistant parameter values
-        uniform_u = np.linspace(0, 1, num_points)
-
-        # Evaluate the spline at these parameter values
-        x_new, y_new, z_new = splev(uniform_u, tck)
-        new_points = np.column_stack((x_new, y_new, z_new))
-
-    return new_points
 
 
 def extract_aorta(dataset, biomodel_data):
@@ -125,23 +16,97 @@ def extract_aorta(dataset, biomodel_data):
     return aorta
 
 
-def render_volume(aorta):
-    """Create a uniform grid for volume rendering."""
-    bounds = aorta.bounds
+def render_patient(
+    plotter: pv.Plotter,
+    patient_id: str,
+    patient_data: dict,
+    row: int,
+    col: int,
+    selected_timestep: int | None = None,
+) -> int | None:
+    """
+    Add a single patient's visualization to a subplot.
 
-    # Create a uniform grid with appropriate resolution
-    uniform = pv.ImageData(
-        dimensions=(128, 128, 128),
-        spacing=(
-            (bounds[1] - bounds[0]) / 127,
-            (bounds[3] - bounds[2]) / 127,
-            (bounds[5] - bounds[4]) / 127,
-        ),
-        origin=(bounds[0], bounds[2], bounds[4]),
+    Args:
+        plotter: PyVista plotter instance
+        patient_id: Patient identifier
+        patient_data: Patient's complete data dictionary
+        row: Subplot row position
+        col: Subplot column position
+        selected_timestep: Specific timestep to use
+
+    Returns:
+        Timestep actually used for visualization
+    """
+    # Activate the appropriate subplot
+    plotter.subplot(row, col)
+
+    # Get patient timestep data
+    timesteps = patient_data["timesteps"]
+
+    # Select timestep (use specified or middle timestep)
+    if selected_timestep and selected_timestep in timesteps:
+        dataset = timesteps[selected_timestep]
+        ts_used = selected_timestep
+    else:
+        sorted_ts = sorted(timesteps.keys())
+        ts_used = sorted_ts[len(sorted_ts) // 2]
+        dataset = timesteps[ts_used]
+
+    # Get patient-specific biomodel
+    biomodel = patient_data["biomodel"]
+
+    # Extract aorta region
+    aorta = extract_aorta(dataset, biomodel)
+
+    # Add biomodel wireframe
+    plotter.add_mesh(
+        biomodel,
+        color="white",
+        opacity=0.1,
+        show_edges=False,
     )
 
-    # Sample data onto the uniform grid
-    return uniform.sample(aorta)
+    # Add centerline if available
+    if "centerline" in patient_data:
+        plotter.add_mesh(
+            patient_data["centerline"],
+            color="blue",
+            line_width=3,
+            render_lines_as_tubes=True,
+            opacity=0.8,
+        )
+    else:
+        print(f"Patient {patient_id}: No centerline data available")
+
+    # Add volume rendering
+    plotter.add_volume(
+        aorta,
+        scalars="VelocityMagnitude",
+        cmap="coolwarm",
+        opacity="sigmoid_5",
+        scalar_bar_args={
+            "title": "Velocity (cm/s)",
+            "position_x": 0.85,
+            "position_y": 0.1,
+            "width": 0.08,
+            "height": 0.8,
+            "n_labels": 5,
+            "fmt": "%.0f",
+            "vertical": True,
+            "title_font_size": 12,
+            "label_font_size": 12,
+        },
+    )
+
+    # Configure viewing and add labels
+    plotter.view_xy()
+    plotter.add_text(
+        f"Patient: {patient_id}\nTimestep: {ts_used}",
+        position="upper_left",
+        font_size=8,
+        color="black",
+    )
 
 
 def generate_streamlines(aorta, center):
@@ -209,168 +174,51 @@ def ortoplanes(points, dataset, radius=30):
     return cross_sections
 
 
-def calculate_wss_for_point(
-    wall_point, normal, field_tree, field_points, velocity_field, mu=0.004
-):
-    """Calculate WSS for a single wall point.
+def cross_section(selected_point, points, dataset, radius=30, index=0):
+    """Create a single orthogonal cross-section at the specified index along the centreline.
 
     Args:
-        wall_point: Wall point coordinates
-        normal: Wall normal vector
-        field_tree: KDTree for field points
-        field_points: Array of field point coordinates
-        velocity_field: Array of velocity vectors
-        mu: Blood viscosity in Pa·s
+        selected_point: The specific point along the centreline where to create the cross-section
+        points: Array of all centreline points (needed for tangent calculation)
+        dataset: The dataset to slice
+        radius: Radius of the spherical clipping region
+        index: Index of the selected point in the centreline array
 
     Returns:
-        WSS value for the point
+        PyVista mesh representing the cross-section, or None if failed
     """
-    # Find points along normal direction (within 2mm)
-    distances, indices = field_tree.query(wall_point, k=10)
+    try:
+        # Calculate tangent vector at the selected point
+        if index == 0:
+            # For the first point, use forward difference
+            tangent = points[1] - points[0]
+        elif index == len(points) - 1:
+            # For the last point, use backward difference
+            tangent = points[-1] - points[-2]
+        else:
+            # For interior points, use central difference
+            tangent = points[index + 1] - points[index - 1]
 
-    if len(indices) > 1:
-        # Get velocities at these points
-        velocities = velocity_field[indices]
+        # Normalize the tangent vector
+        tangent = tangent / np.linalg.norm(tangent)
 
-        # Project points onto normal direction
-        projected_distances = np.array(
-            [np.dot(field_points[idx] - wall_point, normal) for idx in indices]
-        )
+        # The normal to the plane is the tangent at this point
+        normal = tangent
 
-        # Sort by distance along normal
-        sorted_indices = np.argsort(projected_distances)
-        sorted_distances = projected_distances[sorted_indices]
-        sorted_velocities = velocities[sorted_indices]
+        # Slice the dataset with a plane at this point and normal
+        full_slice = dataset.slice(normal=normal, origin=selected_point)
 
-        # Calculate velocity gradient at the wall (using points within 2mm)
-        valid_indices = np.where(sorted_distances > 0)[0]
+        # Create a sphere to limit the extent of the slice
+        sphere = pv.Sphere(radius=radius, center=selected_point)
 
-        if len(valid_indices) > 1:
-            # Use first point for gradient calculation
-            idx = valid_indices[0]
-            dist = sorted_distances[idx]
-            vel = sorted_velocities[idx]
+        # Use boolean intersection to limit the slice to the sphere's radius
+        cross_section = full_slice.clip_surface(sphere)
 
-            # Project velocity onto tangential plane
-            vel_normal_component = np.dot(vel, normal) * normal
-            vel_tangential = vel - vel_normal_component
+        return cross_section
 
-            # Calculate WSS (Pa) = viscosity * velocity_gradient
-            return mu * np.linalg.norm(vel_tangential) / dist
-
-    return 0.0
-
-
-def calculate_wss_timestep(wall_points, wall_normals, aorta, mu=0.004):
-    """Calculate WSS for all wall points at a single timestep.
-
-    Args:
-        wall_points: Array of wall point coordinates
-        wall_normals: Array of wall normal vectors
-        aorta: Aorta dataset with velocity field
-        mu: Blood viscosity in Pa·s
-
-    Returns:
-        Array of WSS values for all wall points
-    """
-    # Extract velocity field
-    velocity_field = np.array(aorta["Velocity"]) * 10  # Convert to mm/s
-    field_points = np.array(aorta.points)
-
-    # Create KDTree for field points
-    field_tree = KDTree(field_points)
-
-    # Calculate WSS for wall points
-    wss = np.zeros(len(wall_points))
-
-    # For each wall point, find closest velocity points and calculate velocity gradient
-    for i in range(len(wall_points)):
-        wss[i] = calculate_wss_for_point(
-            wall_points[i],
-            wall_normals[i],
-            field_tree,
-            field_points,
-            velocity_field,
-            mu,
-        )
-
-    return wss
-
-
-def calculate_osi(timesteps, timestep_data, biomodel_data, mu=0.004):
-    """Calculate Oscillatory Shear Index (OSI) for all wall points.
-
-    Args:
-        timesteps: List of timestep values
-        timestep_data: Dictionary mapping timesteps to datasets
-        biomodel_data: Biomodel mesh data
-        mu: Blood viscosity in Pa·s
-
-    Returns:
-        Array of OSI values for all wall points
-    """
-    # Extract the wall points from biomodel
-    biomodel_data.compute_normals(cell_normals=False, point_normals=True, inplace=True)
-    wall_points = np.array(biomodel_data.points)
-    wall_normals = np.array(biomodel_data["Normals"])
-
-    # Calculate the time-averaged WSS vector and magnitude
-    wss_vectors_sum = np.zeros((len(wall_points), 3))
-    wss_magnitude_sum = np.zeros(len(wall_points))
-
-    # For each timestep, add the WSS vector components and magnitudes
-    for ts in timesteps:
-        dataset = timestep_data[ts]
-        aorta = extract_aorta(dataset, biomodel_data)
-
-        velocity_field = np.array(aorta["Velocity"]) * 10  # Convert to mm/s
-        field_points = np.array(aorta.points)
-
-        field_tree = KDTree(field_points)
-
-        for i in range(len(wall_points)):
-            wall_point = wall_points[i]
-            normal = wall_normals[i]
-
-            distances, indices = field_tree.query(wall_point, k=10)
-
-            if len(indices) > 1:
-                projected_distances = np.array(
-                    [np.dot(field_points[idx] - wall_point, normal) for idx in indices]
-                )
-
-                sorted_indices = np.argsort(projected_distances)
-                sorted_distances = projected_distances[sorted_indices]
-                sorted_velocities = velocity_field[indices][sorted_indices]
-
-                valid_indices = np.where(sorted_distances > 0)[0]
-
-                if len(valid_indices) > 1:
-                    idx = valid_indices[0]
-                    dist = sorted_distances[idx]
-                    vel = sorted_velocities[idx]
-
-                    # Project velocity onto tangential plane
-                    vel_normal_component = np.dot(vel, normal) * normal
-                    vel_tangential = vel - vel_normal_component
-
-                    # Calculate WSS vector (direction is important for OSI)
-                    wss_vector = mu * vel_tangential / dist
-
-                    # Add to sums
-                    wss_vectors_sum[i] += wss_vector
-                    wss_magnitude_sum[i] += np.linalg.norm(wss_vector)
-
-    # Calculate OSI: 0.5 * (1 - |∑wss_vector| / ∑|wss_vector|)
-    with np.errstate(divide="ignore", invalid="ignore"):  # Handle division by zero
-        osi_values = 0.5 * (
-            1 - np.linalg.norm(wss_vectors_sum, axis=1) / wss_magnitude_sum
-        )
-
-    # Replace NaN values with 0 (occurs when there's no WSS)
-    osi_values = np.nan_to_num(osi_values)
-
-    return osi_values
+    except Exception as e:
+        print(f"Error creating cross-section at index {index}: {e}")
+        return None
 
 
 def calculate_velocity_gradients(dataset):
@@ -429,139 +277,6 @@ def calculate_viscous_dissipation(strain_rate, mu):
         dissipation[i] = 2 * mu * sij_squared
 
     return dissipation
-
-
-def calculate_gradient_tensor(aorta):
-    """Calculate the full velocity gradient tensor for all points in the aorta.
-
-    Args:
-        aorta: PyVista dataset containing velocity field
-
-    Returns:
-        np.ndarray: Gradient tensor of shape (n_points, 3, 3)
-    """
-    velocity = aorta["Velocity"]
-    grad_tensor = np.zeros((aorta.n_points, 3, 3))
-
-    for i in range(3):  # velocity components
-        vel_component = velocity[:, i]
-        aorta.point_data["temp_vel"] = vel_component
-        grad_result = aorta.compute_derivative(scalars="temp_vel")
-        grad_tensor[:, i, :] = grad_result["gradient"]
-
-    # Clean up temporary data
-    if "temp_vel" in aorta.point_data:
-        del aorta.point_data["temp_vel"]
-
-    return grad_tensor
-
-
-def calculate_strain_rate_from_gradient(grad_tensor):
-    """Calculate strain rate tensor from velocity gradient tensor.
-
-    Args:
-        grad_tensor: Velocity gradient tensor of shape (n_points, 3, 3)
-
-    Returns:
-        np.ndarray: Strain rate tensor S_ij = 0.5 * (du_i/dx_j + du_j/dx_i)
-    """
-    # Calculate strain rate tensor: S_ij = 0.5 * (du_i/dx_j + du_j/dx_i)
-    strain_rate = 0.5 * (grad_tensor + np.transpose(grad_tensor, (0, 2, 1)))
-    return strain_rate
-
-
-def calculate_viscous_dissipation_from_strain(strain_rate, mu=0.004):
-    """Calculate viscous dissipation function from strain rate tensor.
-
-    Args:
-        strain_rate: Strain rate tensor of shape (n_points, 3, 3)
-        mu: Dynamic viscosity of blood (Pa·s)
-
-    Returns:
-        np.ndarray: Viscous dissipation values for each point
-    """
-    # Calculate viscous dissipation function: Φ = μ * Σ(S_ij^2)
-    dissipation = mu * np.sum(strain_rate**2, axis=(1, 2))
-    return dissipation
-
-
-def estimate_cell_volumes(aorta):
-    """Estimate cell volumes for the aorta dataset.
-
-    Args:
-        aorta: PyVista dataset
-
-    Returns:
-        np.ndarray: Array of estimated cell volumes
-    """
-    # Try to compute cell sizes first
-    aorta.compute_cell_sizes(length=False, area=False, volume=True)
-
-    if "Volume" in aorta.cell_data:
-        return aorta.cell_data["Volume"]
-    else:
-        # Fallback: use unit volumes
-        return np.ones(aorta.n_cells)
-
-
-def map_point_data_to_cells(aorta, point_data):
-    """Map point data to cell data by averaging.
-
-    Args:
-        aorta: PyVista dataset
-        point_data: Array of data values at points
-
-    Returns:
-        np.ndarray: Cell-averaged data values
-    """
-    cell_data = np.zeros(aorta.n_cells)
-
-    for i in range(aorta.n_cells):
-        cell = aorta.get_cell(i)
-        point_ids = cell.point_ids
-        cell_data[i] = np.mean(point_data[point_ids])
-
-    return cell_data
-
-
-def calculate_viscous_energy_loss_timestep(aorta, mu=0.004):
-    """Calculate viscous energy loss for a single timestep.
-
-    Args:
-        aorta: PyVista dataset containing velocity field
-        mu: Dynamic viscosity of blood (Pa·s)
-
-    Returns:
-        tuple: (total_energy_loss, total_dissipation, avg_dissipation_rate)
-    """
-    if aorta.n_points == 0:
-        return 0, 0, 0
-
-    # Check if velocity data is available
-    if "Velocity" not in aorta.point_data:
-        return 0, 0, 0
-
-    # Calculate velocity gradients
-    grad_tensor = calculate_gradient_tensor(aorta)
-
-    # Calculate strain rate tensor
-    strain_rate = calculate_strain_rate_from_gradient(grad_tensor)
-
-    # Calculate viscous dissipation
-    dissipation = calculate_viscous_dissipation_from_strain(strain_rate, mu)
-
-    # Estimate cell volumes
-    cell_volumes = estimate_cell_volumes(aorta)
-
-    # Map point dissipation to cells
-    cell_dissipation = map_point_data_to_cells(aorta, dissipation)
-
-    # Calculate total viscous energy loss by integrating over volume
-    total_energy_loss = np.sum(cell_dissipation * cell_volumes)  # W (J/s)
-    total_dissipation = np.sum(cell_dissipation)
-    avg_dissipation_rate = np.mean(dissipation)
-
-    return total_energy_loss, total_dissipation, avg_dissipation_rate
 
 
 def create_energy_loss_plots(
