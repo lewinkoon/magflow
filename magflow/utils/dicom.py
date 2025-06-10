@@ -1,7 +1,9 @@
-import pydicom
-from magflow.utils.logger import logger
 from pathlib import Path
+
 import numpy as np
+import pydicom
+
+from magflow.utils.logger import logger
 
 
 def determine_axis(filename):
@@ -19,12 +21,11 @@ def extract_timestep(pffgs):
     Extract the cardiac phase information (timing) from the DICOM file.
     """
     timestep = 0
-    if (0x0018, 0x9118) in pffgs:  # Cardiac Triggering Sequence
-        if "NominalCardiacTriggerDelayTime" in pffgs[(0x0018, 0x9118)][0]:
-            delay_time = pffgs[(0x0018, 0x9118)][0][
-                "NominalCardiacTriggerDelayTime"
-            ].value
-            timestep = int(delay_time)
+    if (0x0018, 0x9118) in pffgs and "NominalCardiacTriggerDelayTime" in pffgs[
+        (0x0018, 0x9118)
+    ][0]:  # Cardiac Triggering Sequence
+        delay_time = pffgs[(0x0018, 0x9118)][0]["NominalCardiacTriggerDelayTime"].value
+        timestep = int(delay_time)
     return timestep
 
 
@@ -227,7 +228,7 @@ def extract_dicom_images(input_dir=".tmp"):
             for file_path in dicom_files:
                 try:
                     slice_data = {}
-                    with open(file_path, "rb") as binary_file:
+                    with file_path.open("rb") as binary_file:
                         ds = pydicom.dcmread(binary_file)
 
                         # assign image array
