@@ -58,7 +58,7 @@ def build(
                 axes_data = extract_dicom_images(temp_dir)
             except FileNotFoundError as e:
                 logger.error(f"Error loading DICOM files: {e}")
-                raise typer.Exit(code=1)
+                raise typer.Exit(code=1) from e
 
             # Extract data for easier access
             fh, rl, ap = axes_data["fh"], axes_data["rl"], axes_data["ap"]
@@ -69,7 +69,7 @@ def build(
                 raise typer.Exit(code=1)
 
             # List unique trigger times
-            timeframes = sorted(set(item["time"] for item in rl))
+            timeframes = sorted({item["time"] for item in rl})
             logger.info(f"Timeframes: {timeframes}")
 
             # Get volume dimensions
