@@ -14,8 +14,11 @@ app = typer.Typer()
 def build(
     pathname: Annotated[Path, typer.Argument()],
     output_dir: Annotated[
-        str, typer.Option(help="Output directory for generated files.")
-    ] = "data",
+        Path,
+        typer.Option(
+            "-o", "--output-dir", help="Output directory for generated files."
+        ),
+    ] = Path("data"),
     raw: Annotated[bool, typer.Option(help="Export comma delimited values.")] = False,
 ):
     """Create volumetric velocity field from dicom files."""
