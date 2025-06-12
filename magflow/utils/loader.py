@@ -8,7 +8,18 @@ from scipy.interpolate import interp1d, splev, splprep
 
 
 def resample(points, num_points=20):
-    """Resample a set of 3D points to create a uniform distribution."""
+    """
+    Resample 3D points to create uniform spacing along a curve.
+
+    Uses linear interpolation for <4 points, spline interpolation otherwise.
+
+    Args:
+        points: Array of 3D points with shape (n, 3)
+        num_points: Target number of resampled points
+
+    Returns:
+        Array of resampled points with shape (num_points, 3)
+    """
     # Calculate cumulative distance along the line
     distances = np.zeros(len(points))
     for i in range(1, len(points)):
@@ -49,13 +60,13 @@ def resample(points, num_points=20):
 
 def load_timesteps(patient_data_dir: Path) -> list[int]:
     """
-    Load available timesteps for a patient.
+    Extract available timestep numbers from VTS files in patient directory.
 
     Args:
-        patient_data_dir: Path to patient's data directory
+        patient_data_dir: Directory containing data.vts.{timestep} files
 
     Returns:
-        Sorted list of available timesteps
+        Sorted list of timestep numbers, empty if directory doesn't exist
     """
     if not patient_data_dir.exists():
         return []
@@ -73,10 +84,10 @@ def load_flow(filepath: Path) -> pv.UnstructuredGrid | None:
     Load velocity field data from VTS file.
 
     Args:
-        filepath: Path to VTS file
+        filepath: Path to VTS file containing flow data
 
     Returns:
-        PyVista dataset or None if loading fails
+        PyVista UnstructuredGrid with velocity data, or None if loading fails
     """
     try:
         return pv.read(str(filepath), force_ext=".vts")
@@ -87,13 +98,16 @@ def load_flow(filepath: Path) -> pv.UnstructuredGrid | None:
 
 def load_biomodel(biomodel_path: Path) -> pv.PolyData | None:
     """
-    Load and transform biomodel data.
+    Load biomodel geometry and apply coordinate transformations.
+
+    Applies rotations, translation, and z-coordinate flipping to align
+    with the flow simulation coordinate system.
 
     Args:
         biomodel_path: Path to biomodel VTK file
 
     Returns:
-        Transformed PyVista PolyData or None if loading fails
+        Transformed PyVista PolyData, or None if loading fails
     """
     if not biomodel_path.exists():
         return None
@@ -120,14 +134,17 @@ def load_biomodel(biomodel_path: Path) -> pv.PolyData | None:
 
 def load_centerline(centerline_path: Path, num_points: int = 24) -> pv.PolyData | None:
     """
-    Load and process centerline data.
+    Load centerline from 3D Slicer markup JSON and process into uniform spacing.
+
+    Extracts control points, applies coordinate transformations, and resamples
+    to create a smooth centerline with uniform point distribution.
 
     Args:
-        centerline_path: Path to centerline JSON file
-        num_points: Number of points for resampling
+        centerline_path: Path to 3D Slicer centerline JSON file
+        num_points: Number of points for resampled centerline
 
     Returns:
-        Processed centerline as PyVista PolyData or None if loading fails
+        PyVista PolyData with processed centerline, or None if loading fails
     """
     if not centerline_path.exists():
         return None
@@ -190,15 +207,15 @@ def load_patient(
     patient_id: str, assets_dir: Path, num_centerline_points: int = 24
 ) -> dict:
     """
-    Load all data for a single patient.
+    Load complete patient dataset including flow data, biomodel, and centerline.
 
     Args:
-        patient_id: Patient identifier
-        assets_dir: Root directory containing patient data
-        num_centerline_points: Number of centerline points
+        patient_id: Unique patient identifier
+        assets_dir: Root directory containing patient subdirectories
+        num_centerline_points: Number of points for centerline resampling
 
     Returns:
-        Dictionary containing patient data
+        Dictionary with keys: 'timesteps' (flow data), 'biomodel', 'centerline'
     """
     patient_data = {"timesteps": {}}
     patient_dir = assets_dir / patient_id
@@ -239,14 +256,14 @@ def load_patient(
 
 def validate_patient(patient_data: dict, patient_id: str) -> dict[str, bool]:
     """
-    Validate completeness of patient data.
+    Check completeness and validity of loaded patient data.
 
     Args:
-        patient_data: Patient data dictionary
-        patient_id: Patient identifier
+        patient_data: Patient data dictionary from load_patient()
+        patient_id: Patient identifier for error reporting
 
     Returns:
-        Dictionary with validation results
+        Dictionary with validation flags and counts
     """
     validation = {
         "has_timesteps": bool(patient_data.get("timesteps")),
@@ -261,7 +278,17 @@ def validate_patient(patient_data: dict, patient_id: str) -> dict[str, bool]:
 def load_metric_cache(
     patient_id: str, metric_name: str, cache_dir: Path = Path("cache")
 ) -> dict | None:
-    """Load cached metric for a patient."""
+    """
+    Load previously computed metric from pickle cache file.
+
+    Args:
+        patient_id: Patient identifier
+        metric_name: Name of the cached metric
+        cache_dir: Directory containing cache files
+
+    Returns:
+        Cached metric data, or None if not found or loading fails
+    """
     cache_file = cache_dir / f"{patient_id}_{metric_name}.pkl"
     if cache_file.exists():
         try:
@@ -275,7 +302,15 @@ def load_metric_cache(
 def save_metric_cache(
     patient_id: str, metric_name: str, data, cache_dir: Path = Path("cache")
 ):
-    """Save computed metric to cache."""
+    """
+    Save computed metric data to pickle cache file for future use.
+
+    Args:
+        patient_id: Patient identifier
+        metric_name: Name of the metric to cache
+        data: Metric data to save
+        cache_dir: Directory to store cache files
+    """
     cache_dir.mkdir(parents=True, exist_ok=True)
     cache_file = cache_dir / f"{patient_id}_{metric_name}.pkl"
 
