@@ -4,6 +4,10 @@ version = "0.1.0"
 description = "Visualize velocity image series from a phase contrast magnetic resonance imaging study as three-dimensional vector field."
 readme = "readme.md"
 requires-python = ">=3.12"
+authors = [
+    {name = "Lewin"}
+]
+keywords = ["medical-imaging", "mri", "visualization", "vector-field"]
 dependencies = [
     "streamlit",
     "meshio",
@@ -16,8 +20,12 @@ dependencies = [
     "numpy",
     "tqdm",
     "scipy",
-    "ipykernel",
 ]
+
+[project.urls]
+Homepage = "https://github.com/lewinkoon/magflow"
+Repository = "https://github.com/lewinkoon/magflow"
+Issues = "https://github.com/lewinkoon/magflow/issues"
 
 [project.scripts]
 magflow = "magflow.cli:app"
