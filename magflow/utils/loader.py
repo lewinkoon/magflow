@@ -212,7 +212,7 @@ def load_patient(
     patient_id: str, assets_dir: Path, num_centerline_points: int = 24
 ) -> dict:
     """
-    Load complete patient dataset including flow data, biomodel, and centerline.
+    Load complete patient dataset including flow data, biomodel, centerline, and metadata.
 
     Args:
         patient_id: Unique patient identifier
@@ -220,10 +220,18 @@ def load_patient(
         num_centerline_points: Number of points for centerline resampling
 
     Returns:
-        Dictionary with keys: 'timesteps' (flow data), 'biomodel', 'centerline'
+        Dictionary with keys: 'timesteps' (flow data), 'biomodel', 'centerline', 'metadata'
     """
     patient_data = {"timesteps": {}}
     patient_dir = assets_dir / patient_id
+
+    # Load metadata
+    metadata_path = patient_dir / "meta.json"
+    metadata = load_metadata(metadata_path)
+    if metadata is not None:
+        patient_data["metadata"] = metadata
+    else:
+        print(f"Warning: Metadata file not found for patient {patient_id}")
 
     # Load timestep data
     data_dir = patient_dir / "Data"
@@ -259,6 +267,28 @@ def load_patient(
     return patient_data
 
 
+def load_metadata(metadata_path: Path) -> dict | None:
+    """
+    Load patient metadata from JSON file.
+
+    Args:
+        metadata_path: Path to meta.json file
+
+    Returns:
+        Dictionary containing patient metadata, or None if loading fails
+    """
+    if not metadata_path.exists():
+        return None
+
+    try:
+        with metadata_path.open(encoding="utf-8") as f:
+            metadata = json.load(f)
+        return metadata
+    except Exception as e:
+        print(f"Error loading metadata {metadata_path}: {e}")
+        return None
+
+
 def validate_patient(patient_data: dict, patient_id: str) -> dict[str, bool]:
     """
     Check completeness and validity of loaded patient data.
@@ -274,6 +304,7 @@ def validate_patient(patient_data: dict, patient_id: str) -> dict[str, bool]:
         "has_timesteps": bool(patient_data.get("timesteps")),
         "has_biomodel": "biomodel" in patient_data,
         "has_centerline": "centerline" in patient_data,
+        "has_metadata": "metadata" in patient_data,
         "timestep_count": len(patient_data.get("timesteps", {})),
     }
 
