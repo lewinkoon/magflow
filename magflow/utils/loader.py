@@ -71,11 +71,16 @@ def load_timesteps(patient_data_dir: Path) -> list[int]:
     if not patient_data_dir.exists():
         return []
 
-    available_files = [
-        f.name for f in patient_data_dir.iterdir() if f.name.startswith("data.vts.")
-    ]
+    timesteps = []
+    for f in patient_data_dir.iterdir():
+        if f.name.startswith("data.vts.") and f.is_file():
+            try:
+                timestep = int(f.name.split(".")[-1])
+                timesteps.append(timestep)
+            except ValueError:
+                print(f"Warning: Invalid timestep format in file {f.name}")
+                continue
 
-    timesteps = [int(f.split(".")[-1]) for f in available_files]
     return sorted(timesteps)
 
 
