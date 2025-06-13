@@ -1,17 +1,19 @@
+// Configure justfile to use PowerShell on Windows
 set windows-shell := ["powershell.exe", "-c"]
 
-run +COMMAND:
-    uv run magflow {{COMMAND}}
+// Generate visualizations using magflow
+build:
+    uv run magflow visualize
 
-ui:
-    uv run streamlit run magflow/ui/run.py
+// Extract data using magflow
+extract:
+    uv run magflow extract
 
-docs:
-    uv run mkdocs serve
-
+// Update all dependencies to their latest versions
 update:
     uv lock --upgrade
     uv sync
 
-build:
-    uv run magflow visualize
+// Run any magflow command with arguments
+run +COMMAND:
+    uv run magflow {{COMMAND}}
