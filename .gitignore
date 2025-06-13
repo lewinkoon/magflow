@@ -1,9 +1,9 @@
-.cache/
 .tmp/
 .venv/
 .vscode/
 __pycache__/
 assets/
+cache/
 data/
 dist/
 docs/book
